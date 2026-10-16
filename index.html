@@ -84,7 +84,7 @@ header{display:block;margin-bottom:12px}
 .cancel{width:100%;min-height:44px;margin-top:6px;border:0;background:none;color:var(--mute);font:600 15px inherit;font-family:inherit;cursor:pointer}
 .msg{margin-top:12px;font-size:13px;line-height:1.45;border-radius:12px;padding:10px 12px;display:none}.msg.err{display:block;background:#ff4d5e18;color:#ff9aa4}.msg.info{display:block;background:#3d8bff18;color:#9dc0ff}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#16301f;color:var(--g);border:1px solid #2bff8855;padding:11px 18px;border-radius:99px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:40;white-space:nowrap}.toast.show{opacity:1;transform:translateX(-50%)}
-</style></head><body><div class="wrap"><div id="app"></div></div>
+.col .t i{background:linear-gradient(#ffffff,#9aa6ba);opacity:.5}.col .t i.neg{background:linear-gradient(#ff4d5e,#a82333)}.col.on .t i{opacity:1;box-shadow:0 0 16px #ffffff88}</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/core.js?v=4"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
