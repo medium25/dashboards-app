@@ -123,7 +123,11 @@ body.lock{overflow:hidden}
 .lkg .num{filter:blur(10px);transition:filter .18s}.lkg.peek .num{filter:none}
 .lkg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 .peekhint{margin:-2px 4px 12px;padding:9px 12px;border-radius:12px;background:#ff4d5e18;color:#ffb3bb;font-size:13px;line-height:1.35}
-.lkg.peek .peekhint{opacity:.5}</style></head><body><div class="wrap"><div id="app"></div></div>
+.lkg.peek .peekhint{opacity:.5}
+.dcard{width:100%;margin:2px 0 12px;padding:18px 22px;display:flex;align-items:center;gap:14px;text-align:left;color:var(--tx);font-family:inherit;cursor:pointer;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.dcard:active{transform:scale(.985)}.dcard .lb{display:block;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.dcard.v1{display:block;padding:16px 22px 18px}.v1t{display:flex;justify-content:space-between;align-items:center}.v1t i{font-style:normal;font-size:20px;color:var(--mute)}
+.mini{display:flex;align-items:flex-end;gap:5px;height:36px;margin-top:12px}.mini u{flex:1;border-radius:4px 4px 2px 2px;background:linear-gradient(#ffffff,#9aa6ba);opacity:.55;text-decoration:none}.mini u:last-child{opacity:1;box-shadow:0 0 10px #ffffff66}.mini u.neg{background:linear-gradient(#ff4d5e,#a82333)}</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/core.js?v=6"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -148,7 +152,10 @@ const secHTML=(m,H,c)=>{const r=pick(m),i=m.days.indexOf(r);return `<div class="
 const setOpen=v=>{dOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
-const daysBlock=(m,H,c)=>!m.days.length?'<div class="card"><div class="empty">Для этого месяца есть только итоги</div></div>':`<button class="more" data-toggle>По дням<i>→</i></button>${dOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-toggle>← Назад</button><b>${m.label}</b><span></span></div><div class="pgb">${secHTML(m,H,c)}</div></div>`:''}`;
+
+const dBtn=(m,H)=>{const last=m.days.slice(-14),mx=Math.max(1,...last.map(x=>Math.abs(x.diff)));
+ return `<button class="dcard v1" data-toggle><div class="v1t"><span class="lb">По дням</span><i>→</i></div><div class="mini">${last.map(x=>`<u class="${x.diff<0?'neg':''}" style="height:${Math.max(4,Math.abs(x.diff)/mx*34)}px"></u>`).join('')}</div></button>`};
+const daysBlock=(m,H,c)=>!m.days.length?'<div class="card"><div class="empty">Для этого месяца есть только итоги</div></div>':`${dBtn(m,H)}${dOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-toggle>← Назад</button><b>${m.label}</b><span></span></div><div class="pgb">${secHTML(m,H,c)}</div></div>`:''}`;
 
 const MNG=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const plural=(n,a,b,c)=>{const x=n%100,y=n%10;return x>10&&x<20?c:y===1?a:y>1&&y<5?b:c};
