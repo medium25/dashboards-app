@@ -92,8 +92,24 @@ body.lock{overflow:hidden}
 .pg.anim{animation:slide .24s ease-out}@keyframes slide{from{transform:translateX(40px);opacity:0}}
 .pgh{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 14px;background:#070a10ee;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
 .pgh b{font-size:17px;font-weight:800}.back{justify-self:start;min-height:40px;padding:0 14px 0 4px;border:0;background:none;color:var(--b);font:700 16px inherit;font-family:inherit;cursor:pointer}
-.pgb{max-width:760px;margin:0 auto;padding:14px 14px 40px}</style></head><body><div class="wrap"><div id="app"></div></div>
-<script src="shared/core.js?v=4"></script><script>
+.pgb{max-width:760px;margin:0 auto;padding:14px 14px 40px}
+.dchips{display:flex;gap:8px;overflow-x:auto;margin:0 -20px 14px;padding:0 20px 2px;scrollbar-width:none}.dchips::-webkit-scrollbar{display:none}
+.dchips button{flex:0 0 auto;min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:#ffffff08;color:var(--mute);font:600 14px inherit;font-family:inherit;cursor:pointer}
+.dchips button.miss{border-color:#ff4d5e88;color:#ff9aa4;background:#ff4d5e14}.dchips button.on{background:var(--b);border-color:var(--b);color:#fff}.dchips button.miss.on{background:var(--r);border-color:var(--r);color:#fff}
+.cur .bad{color:#ff9aa4;font-weight:600}
+@keyframes ring{0%{box-shadow:0 0 0 0 #ff4d5eaa,0 8px 28px #ff4d5e55}100%{box-shadow:0 0 0 20px #ff4d5e00,0 8px 28px #ff4d5e55}}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-7px)}30%{transform:translateX(6px)}45%{transform:translateX(-5px)}60%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+
+.fab{display:none}.wrap{padding-bottom:120px}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:12px;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid #ffffff22;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.dt2{flex:1;min-width:0;font-weight:800;font-size:15px;line-height:1.3}
+.dock button{flex:0 0 auto;min-height:50px;padding:0 26px;border:0;border-radius:16px;font:800 17px inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;color:#111}.dock button:active{transform:scale(.96)}
+.dock.st-err{background:#d6293c;color:#fff;animation:shake .5s .3s 1;box-shadow:0 -10px 40px #ff4d5e55}.dock.st-err button{color:#c01a2d}
+.dock.st-warn{background:#f0a52e;color:#2a1b00}.dock.st-warn button{background:#2a1b00;color:#ffd58a}
+.dock.st-ok{background:#0e1d17ee;color:var(--g);border-top-color:#2bff8833}.dock.st-ok button{background:#ffffff14;color:var(--tx)}
+.dock.st-na{background:#1b2433ee;color:var(--mute)}
+</style></head><body><div class="wrap"><div id="app"></div></div>
+<script src="shared/core.js?v=5"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
 let keepScroll=0;
@@ -118,6 +134,21 @@ const setOpen=v=>{dOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classL
 document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
 const daysBlock=(m,H,c)=>!m.days.length?'<div class="card"><div class="empty">Для этого месяца есть только итоги</div></div>':`<button class="more" data-toggle>По дням<i>→</i></button>${dOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-toggle>← Назад</button><b>${m.label}</b><span></span></div><div class="pgb">${secHTML(m,H,c)}</div></div>`:''}`;
+
+const MNG=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const plural=(n,a,b,c)=>{const x=n%100,y=n%10;return x>10&&x<20?c:y===1?a:y>1&&y<5?b:c};
+function entryInfo(s){const now=new Date(),key=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'),today=now.getDate();
+ const m=(s.months||[]).find(x=>x.key===key);
+ if(!m||m.info==null)return{st:'na',m,today,missing:[],now,key};
+ const filled=new Set(m.days.filter(x=>x.hasFound).map(x=>x.d));
+ const missing=[];for(let d=1;d<today;d++)if(!filled.has(d))missing.push(d);
+ const st=missing.length?'err':filled.has(today)?'ok':'warn';
+ return{st,m,today,missing,now,key,todayFilled:filled.has(today)}}
+const listDays=(arr,m)=>{const a=arr.slice(0,4).join(', ')+(arr.length>4?' и ещё '+(arr.length-4):'');return a+' '+MNG[+m.key.split('-')[1]-1]};
+
+const trig=s=>{const I=entryInfo(s);const T={err:['⚠ Не внесено: '+(I.m?listDays(I.missing,I.m):''),'Внести'],warn:['Сегодня ещё не внесено','Внести'],ok:['✓ Всё внесено','Изменить'],na:['Нет вкладки месяца','']}[I.st];
+ return `<div class="dock st-${I.st}"><div class="dt2">${T[0]}</div>${T[1]?`<button data-entry>${T[1]}</button>`:''}</div>`};
+
 Dash.start((s,H)=>{
   const top=`<div class="top"><h1><i></i>${H.esc(s.project.name)}</h1>
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
@@ -131,14 +162,14 @@ Dash.start((s,H)=>{
   <div class="two"><div class="card"><h3>Найдено</h3><div class="num b glow-b">${f(x.found)}<small>${c}</small></div></div>
     <div class="card"><h3>Реклама</h3><div class="num r glow-r">${f(x.spent)}<small>${c}</small></div></div></div>
   ${daysBlock(m,H,c)}
-  <div class="foot"><span>Обновлено ${s.updated.toLocaleTimeString('ru-RU')}</span><button data-refresh>↻ Обновить</button></div>`;
+  <div class="foot"><span>Обновлено ${s.updated.toLocaleTimeString('ru-RU')}</span><button data-refresh>↻ Обновить</button></div>${trig(s)}`;
 });
 // keep active month chip visible in the scroller after re-render
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
 </script>
-<button class="fab" id="fab"><b>+</b>Найдено сегодня</button>
 <div class="ov" id="ov"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ttl"><div class="grab"></div>
-<h2 id="ttl">Найдено сегодня</h2><div class="sub" id="sub"></div>
+<h2 id="ttl">Внести «найдено»</h2><div class="sub" id="sub"></div>
+<div class="dchips" id="dchips"></div>
 <label class="inp"><input id="amt" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Сумма"><span>so'm</span></label>
 <div class="cur" id="cur"></div>
 <div class="mode" id="mode"><button data-m="set" class="on">Заменить</button><button data-m="add">Добавить к сумме</button></div>
@@ -147,35 +178,40 @@ new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.query
 <div class="toast" id="toast"></div>
 <script>
 (()=>{
-const $=id=>document.getElementById(id), D=()=>window.Dash, MN=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],WD=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
-let mode='set',busy=false;
+const $=id=>document.getElementById(id),D=()=>window.Dash,WD=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+let mode='set',busy=false,target=null;const done=new Set();
 const digits=s=>String(s).replace(/\D/g,''),fmt=n=>D().H.fmt(n);
-function ctx(){const now=new Date(),key=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'),st=D().state;
-  const months=st.months||[],m=months.find(x=>x.key===key),proj=D().H.config.projects[st.pi];
-  return {now,key,m,proj,day:now.getDate()}}
-function open(){const c=ctx();$('msg').className='msg';$('amt').value='';$('save').disabled=true;
-  const we=[0,6].includes(c.now.getDay());$('sub').textContent=c.day+' '+MN[c.now.getMonth()]+', '+WD[c.now.getDay()];$('sub').className='sub'+(we?' we':'');
-  const cur=c.m&&c.m.days.find(x=>x.d===c.day);$('cur').innerHTML=cur?'Сейчас в таблице: <b>'+fmt(cur.found)+'</b>':'За сегодня в таблице пока пусто';
-  if(!c.m){info('err','В настройках нет месяца '+c.key+'. Добавь его в shared/core.js.')}
-  else if(c.m.info==null){info('err','У этого месяца нет вкладки с данными по дням — писать некуда.')}
-  else if(!c.proj.scriptUrl){info('info','Чтобы запись шла в Google Таблицу, подключи скрипт: инструкция в apps-script/Code.gs. Пока ссылка не указана, сохранить нельзя.')}
-  $('ov').classList.add('open');setTimeout(()=>$('amt').focus(),60)}
-function info(k,t){$('msg').className='msg '+k;$('msg').textContent=t}
-function close(){$('ov').classList.remove('open')}
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2600)}
-$('fab').onclick=open;$('cancel').onclick=close;$('ov').onclick=e=>{if(e.target===$('ov'))close()};
+const info=()=>{const I=entryInfo(D().state);I.missing=I.missing.filter(d=>!done.has(d));return I};
+function note(k,t){$('msg').className='msg '+k;$('msg').textContent=t}
+function render(){const I=info();if(!I.m){$('dchips').innerHTML='';$('sub').textContent='';$('cur').textContent='';note('err','В настройках нет месяца '+I.key+'. Добавь его в shared/core.js.');$('save').disabled=true;return}
+ const days=[...I.missing];if(!days.includes(I.today))days.push(I.today);if(!days.includes(target))target=days[0];
+ const mn=MNG[+I.key.split('-')[1]-1];
+ $('dchips').innerHTML=days.map(d=>'<button data-d="'+d+'" class="'+(d===target?'on ':'')+(I.missing.includes(d)?'miss':'')+'">'+d+' '+mn.slice(0,3)+(d===I.today?' · сегодня':'')+'</button>').join('');
+ const dt=new Date(I.now.getFullYear(),I.now.getMonth(),target);$('sub').textContent=target+' '+mn+', '+WD[dt.getDay()];$('sub').className='sub'+([0,6].includes(dt.getDay())?' we':'');
+ const row=I.m.days.find(x=>x.d===target&&x.hasFound);$('cur').innerHTML=row?'Сейчас в таблице: <b>'+fmt(row.found)+'</b>':'<span class="bad">Этот день не заполнен</span>';
+ const proj=D().H.config.projects[D().state.pi];
+ if(I.m.info==null)note('err','У этого месяца нет вкладки с данными по дням — писать некуда.');
+ else if(!proj.scriptUrl)note('info','Чтобы запись шла в Google Таблицу, подключи скрипт (apps-script/Code.gs). Пока сохранить нельзя.');
+ else if(I.missing.length)note('err','Не заполнено: '+listDays(I.missing,I.m)+'. Пока есть пропуски, итоги неверные.');
+ else $('msg').className='msg';
+ $('amt').value='';$('save').disabled=true}
+function open(pref){done.clear();target=pref||null;const I=info();if(I.missing.length&&!target)target=I.missing[0];if(!target)target=I.today;render();$('ov').classList.add('open');setTimeout(()=>$('amt').focus(),60)}
+const close=()=>$('ov').classList.remove('open');
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800)}
+document.addEventListener('click',e=>{if(e.target.closest('[data-entry]'))open()});
+$('cancel').onclick=close;$('ov').onclick=e=>{if(e.target===$('ov'))close()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Enter'&&$('ov').classList.contains('open'))save()});
+$('dchips').onclick=e=>{const b=e.target.closest('button');if(!b)return;target=+b.dataset.d;render();$('amt').focus()};
 $('mode').onclick=e=>{const b=e.target.closest('button');if(!b)return;mode=b.dataset.m;[...$('mode').children].forEach(x=>x.classList.toggle('on',x===b))};
 $('amt').oninput=e=>{const d=digits(e.target.value).replace(/^0+(?=\d)/,'');e.target.value=d?d.replace(/\B(?=(\d{3})+(?!\d))/g,' '):'';
-  const c=ctx();$('save').disabled=!d||!c.m||c.m.info==null||!c.proj.scriptUrl;if($('msg').classList.contains('err'))$('msg').className='msg'};
-async function save(){if(busy||$('save').disabled)return;const c=ctx(),v=+digits($('amt').value);if(!v&&v!==0)return;
+  const I=info(),proj=D().H.config.projects[D().state.pi];$('save').disabled=!d||!I.m||I.m.info==null||!proj.scriptUrl};
+async function save(){if(busy||$('save').disabled)return;const I=info(),proj=D().H.config.projects[D().state.pi],v=+digits($('amt').value);
   busy=true;$('save').textContent='Сохраняю…';$('save').disabled=true;
-  try{
-    const r=await fetch(c.proj.scriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:c.proj.token,gid:c.m.info,day:c.day,value:v,mode})});
+  try{const r=await fetch(proj.scriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:proj.token,gid:I.m.info,day:target,value:v,mode})});
     const j=await r.json();if(!j.ok)throw new Error(j.error||'ошибка');
-    close();toast('Сохранено: '+fmt(j.value)+" so'm");
-    setTimeout(()=>{D().reload()},1200);
-  }catch(e){info('err','Не удалось сохранить: '+e.message+'. Проверь ссылку и токен скрипта.');$('save').disabled=false}
+    done.add(target);toast(target+' '+MNG[+I.key.split('-')[1]-1]+': '+fmt(j.value)+" so'm");setTimeout(()=>D().reload(),1200);
+    const left=info();if(left.missing.length){target=left.missing[0];render()}else close();
+  }catch(e){note('err','Не удалось сохранить: '+e.message+'. Проверь ссылку и токен скрипта.');$('save').disabled=false}
   busy=false;$('save').textContent='Сохранить'}
 $('save').onclick=save;
 })();

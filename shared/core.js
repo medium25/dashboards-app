@@ -72,7 +72,7 @@
         const d = parseInt(first, 10);
         const found = num(row[1]), spent = num(row[2]);
         if (!d || (found == null && spent == null)) continue; // skip future / empty days
-        out.days.push({ d, found: found || 0, spent: spent || 0, diff: num(row[3]) ?? (found || 0) - (spent || 0) });
+        out.days.push({ d, hasFound: found != null, found: found || 0, spent: spent || 0, diff: num(row[3]) ?? (found || 0) - (spent || 0) });
       }
     }
     // derived stats
