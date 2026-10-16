@@ -127,7 +127,14 @@ body.lock{overflow:hidden}
 .dcard{width:100%;margin:2px 0 12px;padding:18px 22px;display:flex;align-items:center;gap:14px;text-align:left;color:var(--tx);font-family:inherit;cursor:pointer;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
 .dcard:active{transform:scale(.985)}.dcard .lb{display:block;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
 .dcard.v1{display:block;padding:16px 22px 18px}.v1t{display:flex;justify-content:space-between;align-items:center}.v1t i{font-style:normal;font-size:20px;color:var(--mute)}
-.mini{display:flex;align-items:flex-end;gap:5px;height:36px;margin-top:12px}.mini u{flex:1;border-radius:4px 4px 2px 2px;background:linear-gradient(#ffffff,#9aa6ba);opacity:.55;text-decoration:none}.mini u:last-child{opacity:1;box-shadow:0 0 10px #ffffff66}.mini u.neg{background:linear-gradient(#ff4d5e,#a82333)}.back{min-height:42px;padding:0 18px 0 14px!important;border-radius:99px;font-weight:800!important;font-size:15px!important;-webkit-tap-highlight-color:transparent}.back:active{transform:scale(.95)}.back{background:#fff!important;color:#0b0f17!important;box-shadow:0 4px 18px #ffffff44}</style></head><body><div class="wrap"><div id="app"></div></div>
+.mini{display:flex;align-items:flex-end;gap:5px;height:36px;margin-top:12px}.mini u{flex:1;border-radius:4px 4px 2px 2px;background:linear-gradient(#ffffff,#9aa6ba);opacity:.55;text-decoration:none}.mini u:last-child{opacity:1;box-shadow:0 0 10px #ffffff66}.mini u.neg{background:linear-gradient(#ff4d5e,#a82333)}.back{min-height:42px;padding:0 18px 0 14px!important;border-radius:99px;font-weight:800!important;font-size:15px!important;-webkit-tap-highlight-color:transparent}.back:active{transform:scale(.95)}.back{background:#fff!important;color:#0b0f17!important;box-shadow:0 4px 18px #ffffff44}
+#inst{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:15;max-width:520px;margin:0 auto;display:none;gap:12px;align-items:center;padding:14px 14px 14px 16px;border-radius:22px;background:linear-gradient(135deg,#16213a,#101828);border:1px solid #3d8bff66;box-shadow:0 12px 40px #000b,0 0 0 1px #3d8bff22}
+#inst.show{display:flex;animation:up .3s ease-out}
+#inst .ic2{flex:0 0 44px;height:44px;border-radius:12px;background:url(icons/icon-192.png) center/cover}
+#inst p{flex:1;margin:0;font-size:14px;line-height:1.4;color:#cfe0ff}#inst p b{color:#fff}
+#inst .sh{display:inline-block;vertical-align:-3px;width:18px;height:18px;margin:0 2px}
+#inst button{flex:0 0 auto;min-height:40px;padding:0 14px;border:0;border-radius:12px;background:#ffffff18;color:#fff;font-weight:700;font-size:14px;font-family:inherit;cursor:pointer}
+</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/core.js?v=6"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -206,6 +213,7 @@ new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.query
 <div class="mode" id="mode"><button data-m="set" class="on">Заменить</button><button data-m="add">Добавить к сумме</button></div>
 <div class="msg" id="msg"></div>
 <button class="save" id="save" disabled>Сохранить</button><button class="cancel" id="cancel">Отмена</button></div></div>
+<div id="inst" role="note"><div class="ic2"></div><p><b>Установи как приложение.</b> Нажми <svg class="sh" viewBox="0 0 24 24" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/></svg> «Поделиться», затем <b>«На экран «Домой»»</b>.</p><button id="instx">Понятно</button></div>
 <div class="toast" id="toast"></div>
 <script>
 (()=>{
@@ -256,6 +264,15 @@ $('save').onclick=save;
  addEventListener('touchstart',e=>{y0=(scrollY<=0&&!blocked())?e.touches[0].clientY:null},{passive:true});
  addEventListener('touchmove',e=>{if(y0==null)return;pull=Math.max(0,e.touches[0].clientY-y0);el.style.transform='translate(-50%,'+(Math.min(pull,90)-60)+'px)';el.textContent=pull>80?'Отпусти — обновлю':'Потяни, чтобы обновить';el.style.opacity=Math.min(1,pull/60)},{passive:true});
  addEventListener('touchend',async()=>{if(y0==null)return;const go=pull>80;y0=null;pull=0;if(go){el.textContent='Обновляю…';el.style.transform='translate(-50%,16px)';await Dash.reload({silent:true});navigator.vibrate&&navigator.vibrate(15)}el.style.opacity=0;el.style.transform='translate(-50%,-60px)'});
+
+ // iOS has no install prompt: show a one-time hint with the manual steps
+ (()=>{const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const standalone=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
+  let dismissed=false;try{dismissed=localStorage.getItem('instHint')==='1'}catch(e){}
+  const force=location.search.includes('ioshint');
+  if(!force&&(!ios||standalone||dismissed))return;
+  const box=document.getElementById('inst');setTimeout(()=>box.classList.add('show'),2500);
+  document.getElementById('instx').onclick=()=>{box.classList.remove('show');try{localStorage.setItem('instHint','1')}catch(e){}};})();
  if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 })();
 </script>
