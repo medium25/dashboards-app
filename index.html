@@ -186,7 +186,7 @@ const _unused=s=>{const I=entryInfo(s);const T={err:['⚠ Не внесено: '
 Dash.start((s,H)=>{
   const top=`<div class="top"><h1><i></i>${H.esc(s.project.name)}</h1>
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
-    <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).join('')}</div></div>`;
+    <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).reverse().join('')}</div></div>`;
   if(s.status==='loading')return top+'<div class="status">Загрузка…</div>';
   if(s.status==='error')return top+`<div class="status err">Ошибка: ${H.esc(s.error)}<br><br><button class="tab on" data-refresh>Повторить</button></div>`;
   const m=s.month,x=m.summary,c=s.project.currency,t=totals(m);
