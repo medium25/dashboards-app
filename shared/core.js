@@ -191,11 +191,27 @@
   const H = { weekday, fmt, som, short, pct, esc, dailyChart, cumulativeChart, monthsChart, spark, ring, config: CONFIG };
 
   function draw() { document.getElementById('app').innerHTML = renderFn({ ...state, project: CONFIG.projects[state.pi], month: cur() }, H); }
-  async function load() {
-    state.status = 'loading'; state.error = null; draw();
-    try { state.months = await loadProject(CONFIG.projects[state.pi]); state.status = 'ready'; state.updated = new Date(); if (state.mi >= state.months.length) state.mi = 0; }
-    catch (e) { state.status = 'error'; state.error = e.message; }
+  const ck = () => 'dash:' + CONFIG.projects[state.pi].id;
+  const cacheSave = (months) => { try { localStorage.setItem(ck(), JSON.stringify({ t: Date.now(), months }, (k, v) => (k === 'prev' ? undefined : v))); } catch (e) {} };
+  const cacheLoad = () => { try { return JSON.parse(localStorage.getItem(ck())); } catch (e) { return null; } };
+  // load({silent:true}) refreshes in the background without flashing the loader
+  async function load(opts) {
+    const silent = opts && opts.silent === true && state.status === 'ready';
+    if (!silent) { state.status = 'loading'; state.error = null; draw(); }
+    state.loading = true;
+    try {
+      state.months = await loadProject(CONFIG.projects[state.pi]);
+      state.status = 'ready'; state.offline = false; state.updated = new Date();
+      if (state.mi >= state.months.length) state.mi = 0;
+      cacheSave(state.months);
+    } catch (e) {
+      const c = cacheLoad();
+      if (c && c.months) { state.months = c.months; state.status = 'ready'; state.offline = true; state.updated = new Date(c.t); if (state.mi >= state.months.length) state.mi = 0; }
+      else if (!silent) { state.status = 'error'; state.error = e.message; }
+    }
+    state.loading = false;
     draw();
+    return state.status;
   }
   function start(fn) {
     renderFn = fn;
@@ -206,6 +222,11 @@
       else load();
     });
     load();
+    // refresh data when the app comes back to the foreground, and every 5 minutes while open
+    const stale = (s) => !state.updated || Date.now() - state.updated.getTime() > s * 1000;
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && stale(60) && !state.loading) load({ silent: true }); });
+    window.addEventListener('online', () => { if (state.offline) load({ silent: true }); });
+    setInterval(() => { if (!document.hidden && stale(300) && !state.loading) load({ silent: true }); }, 60000);
   }
   window.Dash = { start, H, redraw: draw, cur, reload: load, state };
 })();
