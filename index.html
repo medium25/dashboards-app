@@ -84,7 +84,15 @@ header{display:block;margin-bottom:12px}
 .cancel{width:100%;min-height:44px;margin-top:6px;border:0;background:none;color:var(--mute);font:600 15px inherit;font-family:inherit;cursor:pointer}
 .msg{margin-top:12px;font-size:13px;line-height:1.45;border-radius:12px;padding:10px 12px;display:none}.msg.err{display:block;background:#ff4d5e18;color:#ff9aa4}.msg.info{display:block;background:#3d8bff18;color:#9dc0ff}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#16301f;color:var(--g);border:1px solid #2bff8855;padding:11px 18px;border-radius:99px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:40;white-space:nowrap}.toast.show{opacity:1;transform:translateX(-50%)}
-.col .t i{background:linear-gradient(#ffffff,#9aa6ba);opacity:.5}.col .t i.neg{background:linear-gradient(#ff4d5e,#a82333)}.col.on .t i{opacity:1;box-shadow:0 0 16px #ffffff88}</style></head><body><div class="wrap"><div id="app"></div></div>
+.col .t i{background:linear-gradient(#ffffff,#9aa6ba);opacity:.5}.col .t i.neg{background:linear-gradient(#ff4d5e,#a82333)}.col.on .t i{opacity:1;box-shadow:0 0 16px #ffffff88}
+.more{width:100%;min-height:54px;margin:2px 0 12px;padding:0 20px;display:flex;justify-content:space-between;align-items:center;border-radius:18px;border:1px solid #2c3a52;background:#ffffff08;color:var(--tx);font:700 16px inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.more:active{transform:scale(.985)}.more i{font-style:normal;font-size:18px;color:var(--mute);transition:transform .2s}
+body.lock{overflow:hidden}
+.pg{position:fixed;inset:0;z-index:26;background:radial-gradient(900px 500px at 85% -10%,#12304a55,transparent),#070a10;overflow:auto;overscroll-behavior:contain;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.pg.anim{animation:slide .24s ease-out}@keyframes slide{from{transform:translateX(40px);opacity:0}}
+.pgh{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 14px;background:#070a10ee;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.pgh b{font-size:17px;font-weight:800}.back{justify-self:start;min-height:40px;padding:0 14px 0 4px;border:0;background:none;color:var(--b);font:700 16px inherit;font-family:inherit;cursor:pointer}
+.pgb{max-width:760px;margin:0 auto;padding:14px 14px 40px}</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/core.js?v=4"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -103,6 +111,13 @@ let tx=null;document.addEventListener('touchstart',e=>{if(e.target.closest('.det
 document.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>50)step(dx<0?1:-1)});
 new MutationObserver(()=>{const s=document.getElementById('strip'),a=s&&s.querySelector('.col.on');if(a)s.scrollLeft=a.offsetLeft-(s.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
 
+
+let dOpen=false,fresh=false;
+const secHTML=(m,H,c)=>{const r=pick(m),i=m.days.indexOf(r);return `<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=m.days.length-1?'disabled':''}>Позже →</button></div>`};
+const setOpen=v=>{dOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
+document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
+const daysBlock=(m,H,c)=>!m.days.length?'<div class="card"><div class="empty">Для этого месяца есть только итоги</div></div>':`<button class="more" data-toggle>По дням<i>→</i></button>${dOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-toggle>← Назад</button><b>${m.label}</b><span></span></div><div class="pgb">${secHTML(m,H,c)}</div></div>`:''}`;
 Dash.start((s,H)=>{
   const top=`<div class="top"><h1><i></i>${H.esc(s.project.name)}</h1>
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
@@ -115,7 +130,7 @@ Dash.start((s,H)=>{
   <div class="card hero"><h3>Чистая прибыль</h3><div class="num g glow-g">${f(x.profit)}<small>${c}</small></div></div>
   <div class="two"><div class="card"><h3>Найдено</h3><div class="num b glow-b">${f(x.found)}<small>${c}</small></div></div>
     <div class="card"><h3>Реклама</h3><div class="num r glow-r">${f(x.spent)}<small>${c}</small></div></div></div>
-  ${m.days.length?(()=>{const r=pick(m);const i=m.days.indexOf(r);return `<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=m.days.length-1?'disabled':''}>Позже →</button></div>`})():'<div class="card"><div class="empty">Для этого месяца есть только итоги</div></div>'}
+  ${daysBlock(m,H,c)}
   <div class="foot"><span>Обновлено ${s.updated.toLocaleTimeString('ru-RU')}</span><button data-refresh>↻ Обновить</button></div>`;
 });
 // keep active month chip visible in the scroller after re-render
