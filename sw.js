@@ -1,6 +1,6 @@
 // Network-first for the app's own files (so updates arrive), cache as offline fallback.
 // Google Sheets requests are not handled here; core.js keeps its own offline copy of the data.
-const C = 'dash-v1';
+const C = 'dash-v2';
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(
   caches.keys().then((k) => Promise.all(k.filter((x) => x !== C).map((x) => caches.delete(x)))).then(() => self.clients.claim())
