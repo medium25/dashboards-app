@@ -113,7 +113,13 @@ body.lock{overflow:hidden}
 .ov{bottom:var(--kb,0px)}.sheet{max-height:100%;overflow-y:auto;overscroll-behavior:contain}
 .foot .off{color:#ffb84a}
 #ptr{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:50%;transform:translate(-50%,-60px);z-index:50;background:#16213a;color:#9dc0ff;border:1px solid #3d8bff55;padding:8px 16px;border-radius:99px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;white-space:nowrap;transition:opacity .15s}
-</style></head><body><div class="wrap"><div id="app"></div></div>
+.wrap{padding-bottom:40px}.dock{display:none}
+.addrow{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 12px 12px 18px;border-radius:20px;border:1px solid var(--line);background:#111826}
+.at{flex:1;min-width:0;display:flex;align-items:center;gap:12px}.at b{display:block;font-size:15px;font-weight:800}.at span{display:block;font-size:13px;color:var(--mute);margin-top:2px;line-height:1.3}
+.dot{flex:0 0 12px;height:12px;border-radius:50%;background:var(--b);box-shadow:0 0 0 4px #3d8bff2a}
+.addrow button{flex:0 0 auto;min-height:48px;padding:0 22px;border:0;border-radius:14px;background:var(--b);color:#fff;font:800 16px inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}.addrow button:active{transform:scale(.96)}
+.addrow.st-err{background:linear-gradient(135deg,#3a1219,#241017);border-color:#ff4d5e88;box-shadow:0 0 0 1px #ff4d5e33,0 8px 28px #ff4d5e2a}.addrow.st-err .dot{background:var(--r);box-shadow:0 0 0 4px #ff4d5e33;animation:ring 1.6s infinite}.addrow.st-err .at span{color:#ffb3bb}.addrow.st-err button{background:var(--r)}
+.addrow.st-ok{background:#0e1d17;border-color:#2bff8833}.addrow.st-ok .dot{background:var(--g);box-shadow:0 0 0 4px #2bff8822}.addrow.st-ok button{background:#ffffff14;color:var(--tx)}</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/core.js?v=6"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -151,7 +157,12 @@ function entryInfo(s){const now=new Date(),key=now.getFullYear()+'-'+String(now.
  return{st,m,today,missing,now,key,todayFilled:filled.has(today)}}
 const listDays=(arr,m)=>{const a=arr.slice(0,4).join(', ')+(arr.length>4?' и ещё '+(arr.length-4):'');return a+' '+MNG[+m.key.split('-')[1]-1]};
 
-const trig=s=>{const I=entryInfo(s);const T={err:['⚠ Не внесено: '+(I.m?listDays(I.missing,I.m):''),'Внести'],warn:['Сегодня ещё не внесено','Внести'],ok:['✓ Всё внесено','Изменить'],na:['Нет вкладки месяца','']}[I.st];
+
+const INFOT=s=>{const I=entryInfo(s);const day=I.today+' '+(I.m?MNG[+I.m.key.split('-')[1]-1]:'');return{I,miss:I.m?listDays(I.missing,I.m):'',day}};
+
+const inl=s=>{const {I,miss,day}=INFOT(s);if(I.st==='na')return '';const T={err:['Не внесено',miss,'Внести'],warn:['Сегодня',day+' · пока пусто','Внести'],ok:['Всё внесено','пропусков нет','Изменить']}[I.st];
+ return `<div class="addrow st-${I.st}"><div class="at"><i class="dot"></i><div><b>${T[0]}</b><span>${T[1]}</span></div></div><button data-entry>${T[2]}</button></div>`};
+const _unused=s=>{const I=entryInfo(s);const T={err:['⚠ Не внесено: '+(I.m?listDays(I.missing,I.m):''),'Внести'],warn:['Сегодня ещё не внесено','Внести'],ok:['✓ Всё внесено','Изменить'],na:['Нет вкладки месяца','']}[I.st];
  return `<div class="dock st-${I.st}"><div class="dt2">${T[0]}</div>${T[1]?`<button data-entry>${T[1]}</button>`:''}</div>`};
 
 Dash.start((s,H)=>{
@@ -167,7 +178,8 @@ Dash.start((s,H)=>{
   <div class="two"><div class="card"><h3>Найдено</h3><div class="num b glow-b">${f(x.found)}<small>${c}</small></div></div>
     <div class="card"><h3>Реклама</h3><div class="num r glow-r">${f(x.spent)}<small>${c}</small></div></div></div>
   ${daysBlock(m,H,c)}
-  <div class="foot"><span class="${s.offline?'off':''}">Обновлено ${s.updated.toLocaleTimeString('ru-RU')}${s.offline?' · офлайн, данные сохранены':''}</span><button data-refresh>↻ Обновить</button></div>${trig(s)}`;
+  ${inl(s)}
+  <div class="foot"><span class="${s.offline?'off':''}">Обновлено ${s.updated.toLocaleTimeString('ru-RU')}${s.offline?' · офлайн, данные сохранены':''}</span><button data-refresh>↻ Обновить</button></div>`;
 });
 // keep active month chip visible in the scroller after re-render
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
