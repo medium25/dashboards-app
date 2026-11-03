@@ -287,7 +287,7 @@ const cumSeries=(mo,upto)=>{const by={};mo.days.forEach(x=>{if(x.hasFound)by[x.d
 const niceMax=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;return(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p};
 const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!dayList(m).length)return '';
  const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),N=Math.max(dim,pdim);
- const lim=dayList(m).length,A=cumSeries(m,lim),B=cumSeries(pm,pdim),sd=Math.min(sel||lim,lim)||lim;
+ const lim=m.days.length?m.days[m.days.length-1].d:0,A=cumSeries(m,lim),B=cumSeries(pm,pdim),sd=Math.min(sel||lim,lim)||lim;
  const all=[...A,...B].map(p=>p.v),lo=Math.min(0,...all),hi=niceMax(Math.max(...all,1)),span=(hi-lo)||1;
  const W=380,HT=210,pl=46,pr=14,pt=14,pb=26,iw=W-pl-pr,ih=HT-pt-pb,x=d=>pl+(d-1)/(N-1)*iw,yv=v=>pt+ih-(v-lo)/span*ih;
  let grid='';for(let i=0;i<=4;i++){const v=lo+span*i/4;grid+=`<line class="gl" x1="${pl}" x2="${W-pr}" y1="${yv(v)}" y2="${yv(v)}"/><text class="ya" x="${pl-6}" y="${yv(v)+3.5}" text-anchor="end">${H.short(v)}</text>`}
@@ -304,16 +304,17 @@ const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf
  return `<div class="card cmp v2"><div class="ch"><span class="lb">Прибыль нарастающим итогом</span><span class="lgd"><i class="c1"></i>${m.label}<i class="c2"></i>${pm.label}</span></div>
 <svg class="cmpsvg" viewBox="0 0 ${W} ${HT}" preserveAspectRatio="xMidYMid meet">${grid}${xa}${under}<path class="lB" d="${pathB}"/><path class="lA" d="${pathA}"/>${over}${mk}${hit}</svg>
 <div class="cs"><div><span>${sd} ${m.gen} · ${m.label}</span><b>${H.fmt(a)}</b></div><div><span>${sd} ${m.gen} · ${pm.label}</span><b>${H.fmt(b)}</b></div></div>
-<div class="cs one"><div><span>Разница на ${sd} ${m.gen}</span><b class="${cls}">${sg}${H.fmt(Math.abs(df))}${pc==null?'':' · '+sg+Math.abs(pc)+'%'}</b></div></div></div>`};
+<div class="cs one"><div><span>Разница на ${sd} ${m.gen}</span><b class="${cls}">${sg}${H.fmt(Math.abs(df))}</b></div></div></div>`};
 
+const PRE={Январь:'январе',Февраль:'феврале',Март:'марте',Апрель:'апреле',Май:'мае',Июнь:'июне',Июль:'июле',Август:'августе',Сентябрь:'сентябре',Октябрь:'октябре',Ноябрь:'ноябре',Декабрь:'декабре'};
 const INS={Январь:'январём',Февраль:'февралём',Март:'мартом',Апрель:'апрелем',Май:'маем',Июнь:'июнем',Июль:'июлем',Август:'августом',Сентябрь:'сентябрём',Октябрь:'октябрём',Ноябрь:'ноябрём',Декабрь:'декабрём'};
 const DAT={Январь:'январю',Февраль:'февралю',Март:'марту',Апрель:'апрелю',Май:'маю',Июнь:'июню',Июль:'июлю',Август:'августу',Сентябрь:'сентябрю',Октябрь:'октябрю',Ноябрь:'ноябрю',Декабрь:'декабрю'};
 const setCmp=v=>{cmpOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',cmpOpen||dOpen)};
 const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!dayList(m).length)return '';
- const [y,mo]=m.key.split('-').map(Number),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),lim=dayList(m).length;
+ const [y,mo]=m.key.split('-').map(Number),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),lim=m.days.length?m.days[m.days.length-1].d:0;
  const a=cumSeries(m,lim)[lim-1].v,b=cumSeries(pm,pdim)[Math.min(lim,pdim)-1].v,df=a-b,pc=b?Math.round(df/Math.abs(b)*100):null,cls=df===0?'mut':df>0?'g':'r',sg=df>0?'+':df<0?'−':'';
  if(!m.days.length)return `<button class="cmpr" data-cmp-toggle><span class="bdg">=</span><span class="tx"><b>Сравнение с ${INS[pm.label]||pm.label.toLowerCase()}</b><span>Внеси данные за ${m.label.toLowerCase()}, чтобы увидеть разницу</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`;
- return `<button class="cmpr ${cls}" data-cmp-toggle><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span><span class="tx"><b>${pc==null?'':sg+Math.abs(pc)+'% '}к ${DAT[pm.label]||pm.label.toLowerCase()}</b><span>${sg}${H.fmt(Math.abs(df))} · на ${lim}-е число</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
+ return `<button class="cmpr ${cls}" data-cmp-toggle><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span><span class="tx"><b>${df===0?'Так же, как в '+(PRE[pm.label]||pm.label.toLowerCase()):sg+H.fmt(Math.abs(df))+" so'm"}</b><span>${df===0?'на '+lim+'-е число':(df>0?'больше':'меньше')+', чем в '+(PRE[pm.label]||pm.label.toLowerCase())+' на '+lim+'-е число'}</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
 document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
 
