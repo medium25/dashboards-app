@@ -173,7 +173,14 @@ body.lock{overflow:hidden}
 .cmps .cx{fill:var(--mute);font-size:10px;font-weight:600}.cmps .cx.on{fill:#fff;font-weight:800}
 .cs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.cs>div{background:#ffffff08;border-radius:14px;padding:10px 12px;min-width:0}.cs span{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}.cs b{font-size:17px;font-variant-numeric:tabular-nums;font-weight:800}.cs b.g{color:var(--g)}.cs b.r{color:var(--r)}.cs b.mut{color:var(--mute);font-weight:600}
 .cs.two{margin-top:8px}.cs.two b{font-size:15px}
-</style></head><body><div class="wrap"><div id="app"></div></div>
+
+.cmp{margin-top:12px;padding:18px 14px 16px}.cmp .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;padding:0 4px}
+.lgd{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--mute)}.lgd i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-left:8px}.lgd i:first-child{margin-left:0}
+.cmpsvg{width:100%;height:auto;display:block;-webkit-user-select:none;user-select:none}
+.cmpsvg .gl{stroke:#ffffff12;stroke-width:1}.cmpsvg .vl{stroke:#ffffff08;stroke-width:1}.cmpsvg .ya,.cmpsvg .xa{fill:var(--mute);font-size:10px;font-weight:600}
+.cmpsvg .lA,.cmpsvg .lB{fill:none;stroke-linecap:round;stroke-linejoin:round}.cmpsvg .hit{fill:transparent;cursor:pointer}.cmpsvg .sx{stroke:#ffffff33;stroke-dasharray:3 3}
+.cs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.cs.one{grid-template-columns:1fr;margin-top:8px}.cs>div{background:#ffffff08;border-radius:14px;padding:10px 12px;min-width:0}.cs span{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}.cs b{font-size:17px;font-variant-numeric:tabular-nums;font-weight:800}.cs b.g{color:var(--g)}.cs b.r{color:var(--r)}.cs b.mut{color:var(--mute);font-weight:600}
+.cmp.v2 .lA{stroke:#2bff88;stroke-width:3;filter:drop-shadow(0 0 5px #2bff88aa)}.cmp.v2 .lB{stroke:#7b8aa3;stroke-width:2;stroke-dasharray:5 4}.cmp.v2 .dA,.cmp.v2 .endA{fill:#06120c;stroke:#2bff88;stroke-width:2.4}.cmp.v2 .dB{fill:#7b8aa3}.cmp.v2 .bub{fill:#2bff88}.cmp.v2 .bt{fill:#06120c;font-size:11px;font-weight:800}.lgd .c1{background:#2bff88}.lgd .c2{background:#7b8aa3}</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/seed.js"></script><script src="shared/core.js?v=8"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -265,31 +272,32 @@ document.addEventListener('input',e=>{const el=e.target;if(el.id!=='ef'&&el.id!=
 document.addEventListener('keydown',e=>{if(!editing)return;if(e.key==='Escape'){editing=false;Dash.redraw()}else if(e.key==='Enter'&&e.target.id==='ef'){e.preventDefault();document.getElementById('es').focus()}else if(e.key==='Enter'&&e.target.id==='es'){e.preventDefault();saveEdit()}});
 document.addEventListener('focusin',e=>{if(e.target.id==='ef'||e.target.id==='es')setTimeout(()=>e.target.scrollIntoView({block:'center',behavior:'smooth'}),260)});
 
-let cmpMetric='found';
+
 const prevKeyOf=k=>{const [y,mo]=k.split('-').map(Number),d=new Date(y,mo-2,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const smooth=pts=>{if(pts.length<2)return '';let d='M'+pts[0][0].toFixed(1)+','+pts[0][1].toFixed(1);for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2,t=0.17;
+ d+=' C'+(p1[0]+(p2[0]-p0[0])*t).toFixed(1)+','+(p1[1]+(p2[1]-p0[1])*t).toFixed(1)+' '+(p2[0]-(p3[0]-p1[0])*t).toFixed(1)+','+(p2[1]-(p3[1]-p1[1])*t).toFixed(1)+' '+p2[0].toFixed(1)+','+p2[1].toFixed(1)}return d};
+const cumSeries=(mo,upto)=>{const by={};mo.days.forEach(x=>{if(x.hasFound)by[x.d]=x.diff});const out=[];let acc=0;for(let d=1;d<=upto;d++){acc+=by[d]||0;out.push({d,v:acc})}return out};
+const niceMax=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;return(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p};
 const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!m.days.length)return '';
- const val=x=>x&&x.hasFound?(cmpMetric==='found'?x.found:cmpMetric==='spent'?x.spent:x.diff):null;
  const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),N=Math.max(dim,pdim);
- const cm={},pv={};m.days.forEach(x=>cm[x.d]=x);pm.days.forEach(x=>pv[x.d]=x);
- const L=dayList(m),lim=L.length,sd=Math.min(sel||lim,lim)||lim;
- let mx=1;for(let d=1;d<=N;d++){mx=Math.max(mx,Math.abs(val(cm[d])||0),Math.abs(val(pv[d])||0))}
- const GW=28,BW=9,CH=110,col={found:'#ffffff',spent:'#ff4d5e',diff:'#2bff88'}[cmpMetric];let svg='';
- for(let d=1;d<=N;d++){const x=(d-1)*GW,a=val(cm[d]),b=val(pv[d]),ha=a==null?0:Math.max(3,Math.abs(a)/mx*CH),hb=b==null?0:Math.max(3,Math.abs(b)/mx*CH),sel_=d===sd,ok=d<=lim;
-  svg+=`<g ${ok?`data-day="${d}"`:''} class="${sel_?'sel':''}"><rect class="hit" x="${x}" y="0" width="${GW}" height="${CH+22}"/>${sel_?`<rect class="selbg" x="${x+1}" y="0" width="${GW-2}" height="${CH+22}" rx="8"/>`:''}`+
-   (b==null?'':`<rect class="pb" x="${x+4}" y="${CH-hb}" width="${BW}" height="${hb}" rx="2.5"/>`)+
-   (a==null?'':`<rect class="cb ${a<0&&cmpMetric==='diff'?'neg':''}" x="${x+4+BW+2}" y="${CH-ha}" width="${BW}" height="${ha}" rx="2.5" style="fill:${a<0&&cmpMetric==='diff'?'#ff4d5e':col}"/>`)+
-   `<text class="cx ${sel_?'on':''}" x="${x+GW/2}" y="${CH+15}" text-anchor="middle">${d}</text></g>`}
- const a=val(cm[sd]),b=val(pv[sd]);let A=0,B=0;for(let d=1;d<=sd;d++){A+=val(cm[d])||0;B+=val(pv[d])||0}
- const good=(df)=>cmpMetric==='spent'?df<=0:df>=0;
- const dl=(p,q)=>{if(p==null||q==null)return '<b class="mut">нет данных</b>';const df=p-q,pc=q?Math.round(df/Math.abs(q)*100):null;return `<b class="${df===0?'mut':good(df)?'g':'r'}">${df>0?'+':df<0?'−':''}${H.fmt(Math.abs(df))}${pc==null?'':' · '+(df>0?'+':df<0?'−':'')+Math.abs(pc)+'%'}</b>`};
- const names={found:'Найдено',spent:'Реклама',diff:'Прибыль'};
- return `<div class="card cmp"><div class="ch"><span class="lb">${m.label} и ${pm.label}</span><span class="lgd"><i class="c1"></i>${m.label}<i class="c2"></i>${pm.label}</span></div>
-<div class="mode cm" id="cmpm">${Object.keys(names).map(k=>`<button data-cmp="${k}" class="${k===cmpMetric?'on':''}">${names[k]}</button>`).join('')}</div>
-<div class="cmps" id="cmps"><svg width="${N*GW}" height="${CH+22}" viewBox="0 0 ${N*GW} ${CH+22}">${svg}</svg></div>
-<div class="cs"><div><span>${sd} ${m.gen} · ${m.label}</span><b>${a==null?'—':H.fmt(a)}</b></div><div><span>${sd} ${m.gen} · ${pm.label}</span><b>${b==null?'—':H.fmt(b)}</b></div></div>
-<div class="cs two"><div><span>Разница за день</span>${dl(a,b)}</div><div><span>За 1–${sd} ${m.gen}</span>${dl(A,B)}</div></div></div>`};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-cmp]');if(b){cmpMetric=b.dataset.cmp;Dash.redraw()}});
-new MutationObserver(()=>{const c=document.getElementById('cmps'),g=c&&c.querySelector('g.sel');if(g){const x=g.getBBox().x;c.scrollLeft=x-(c.clientWidth-28)/2}}).observe(document.getElementById('app'),{childList:true});
+ const lim=dayList(m).length,A=cumSeries(m,lim),B=cumSeries(pm,pdim),sd=Math.min(sel||lim,lim)||lim;
+ const all=[...A,...B].map(p=>p.v),lo=Math.min(0,...all),hi=niceMax(Math.max(...all,1)),span=(hi-lo)||1;
+ const W=380,HT=210,pl=46,pr=14,pt=14,pb=26,iw=W-pl-pr,ih=HT-pt-pb,x=d=>pl+(d-1)/(N-1)*iw,yv=v=>pt+ih-(v-lo)/span*ih;
+ let grid='';for(let i=0;i<=4;i++){const v=lo+span*i/4;grid+=`<line class="gl" x1="${pl}" x2="${W-pr}" y1="${yv(v)}" y2="${yv(v)}"/><text class="ya" x="${pl-6}" y="${yv(v)+3.5}" text-anchor="end">${H.short(v)}</text>`}
+ const ticks=[];for(let d=1;d<=N;d+=(N>28?2:1))ticks.push(d);if(!ticks.includes(N))ticks.push(N);
+ let xa='';ticks.forEach(d=>{const lab=(d===1||d%5===0||d===N);xa+=`<line class="vl" x1="${x(d)}" x2="${x(d)}" y1="${pt}" y2="${pt+ih}"/>`+(lab?`<text class="xa" x="${x(d)}" y="${HT-8}" text-anchor="middle">${d}</text>`:'')});
+ const pA=A.map(p=>[x(p.d),yv(p.v)]),pB=B.map(p=>[x(p.d),yv(p.v)]),pathA=smooth(pA),pathB=smooth(pB);
+ const a=A[sd-1].v,b=B[Math.min(sd,pdim)-1].v,lastA=A[A.length-1],ahead=lastA.v>=B[Math.min(lastA.d,pdim)-1].v;
+ const hit=A.map(p=>`<rect class="hit" data-day="${p.d}" x="${x(p.d)-iw/(N-1)/2}" y="${pt}" width="${iw/(N-1)}" height="${ih}"/>`).join('');
+ const mk=`<line class="sx" x1="${x(sd)}" x2="${x(sd)}" y1="${pt}" y2="${pt+ih}"/><circle class="dB" cx="${x(sd)}" cy="${yv(b)}" r="3.8"/><circle class="dA" cx="${x(sd)}" cy="${yv(a)}" r="4.6"/>`;
+ let under='',over='';
+ const base=yv(Math.max(lo,0));under=`<defs><linearGradient id="ag2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2bff88" stop-opacity=".38"/><stop offset="1" stop-color="#2bff88" stop-opacity="0"/></linearGradient></defs><path d="${pathA} L${pA[pA.length-1][0]},${base} L${pA[0][0]},${base} Z" fill="url(#ag2)"/>`;
+ const ex=pA[pA.length-1][0],ey=pA[pA.length-1][1];over=`<circle class="endA" cx="${ex}" cy="${ey}" r="4.5"/><g transform="translate(${Math.min(ex,W-pr-34)},${Math.max(ey-20,pt+10)})"><rect class="bub" x="-30" y="-11" width="60" height="20" rx="10"/><text class="bt" x="0" y="3" text-anchor="middle">${H.short(lastA.v)}</text></g>`;
+ const df=a-b,pc=b?Math.round(df/Math.abs(b)*100):null,cls=df===0?'mut':df>0?'g':'r',sg=df>0?'+':df<0?'−':'';
+ return `<div class="card cmp v2"><div class="ch"><span class="lb">Прибыль нарастающим итогом</span><span class="lgd"><i class="c1"></i>${m.label}<i class="c2"></i>${pm.label}</span></div>
+<svg class="cmpsvg" viewBox="0 0 ${W} ${HT}" preserveAspectRatio="xMidYMid meet">${grid}${xa}${under}<path class="lB" d="${pathB}"/><path class="lA" d="${pathA}"/>${over}${mk}${hit}</svg>
+<div class="cs"><div><span>${sd} ${m.gen} · ${m.label}</span><b>${H.fmt(a)}</b></div><div><span>${sd} ${m.gen} · ${pm.label}</span><b>${H.fmt(b)}</b></div></div>
+<div class="cs one"><div><span>Разница на ${sd} ${m.gen}</span><b class="${cls}">${sg}${H.fmt(Math.abs(df))}${pc==null?'':' · '+sg+Math.abs(pc)+'%'}</b></div></div></div>`};
 Dash.start((s,H)=>{
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
