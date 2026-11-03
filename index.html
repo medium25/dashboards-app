@@ -163,6 +163,16 @@ body.lock{overflow:hidden}
 .ein input::placeholder{color:#3b4a63}.ein input.b{color:var(--b)}.ein input.r{color:var(--r)}.ein input:focus{border-bottom-color:#ffffff55}.ein em{font-style:normal;font-size:12px;font-weight:600;color:var(--mute)}
 .det.edit .editday{margin-top:10px}.det.edit .editday.primary:disabled{opacity:.35;box-shadow:none}
 .gapnote{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:#ff4d5e18;color:#ffb3bb;font-size:14px;line-height:1.4}
+
+.cmp{margin-top:12px;padding:18px 16px 16px}
+.cmp .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.lgd{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--mute)}.lgd i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-left:8px}.lgd i:first-child{margin-left:0}.lgd i.c1{background:#fff}.lgd i.c2{background:#4a5872}
+.mode.cm{margin:0 0 12px;grid-template-columns:repeat(3,1fr)}.mode.cm button{min-height:38px;font-size:14px}
+.cmps{overflow-x:auto;scrollbar-width:none;margin:0 -4px;padding:0 4px}.cmps::-webkit-scrollbar{display:none}.cmps svg{display:block}
+.cmps .hit{fill:transparent;cursor:pointer}.cmps .selbg{fill:#ffffff12;stroke:#ffffff22}.cmps .pb{fill:#4a5872}.cmps .cb{opacity:.9}.cmps g.sel .cb{opacity:1}
+.cmps .cx{fill:var(--mute);font-size:10px;font-weight:600}.cmps .cx.on{fill:#fff;font-weight:800}
+.cs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.cs>div{background:#ffffff08;border-radius:14px;padding:10px 12px;min-width:0}.cs span{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}.cs b{font-size:17px;font-variant-numeric:tabular-nums;font-weight:800}.cs b.g{color:var(--g)}.cs b.r{color:var(--r)}.cs b.mut{color:var(--mute);font-weight:600}
+.cs.two{margin-top:8px}.cs.two b{font-size:15px}
 </style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/seed.js"></script><script src="shared/core.js?v=8"></script><script>
 const f=n=>Dash.H.fmt(n);
@@ -189,7 +199,7 @@ new MutationObserver(()=>{const s=document.getElementById('strip'),a=s&&s.queryS
 
 
 let dOpen=false,fresh=false;
-const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);const GI=entryInfo(Dash.state);return `${m.key===GI.key&&GI.missing.length?`<div class="gapnote">Не заполнено: ${listDays(GI.missing,m)}. Пока есть пропуски, итоги неверные.</div>`:''}<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>`};
+const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);const GI=entryInfo(Dash.state);return `${m.key===GI.key&&GI.missing.length?`<div class="gapnote">Не заполнено: ${listDays(GI.missing,m)}. Пока есть пропуски, итоги неверные.</div>`:''}<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>${cmpHTML(m,H)}`};
 const setOpen=v=>{dOpen=v;if(!v)editing=false;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
@@ -254,6 +264,32 @@ document.addEventListener('input',e=>{const el=e.target;if(el.id!=='ef'&&el.id!=
  ep.textContent=Dash.H.fmt(f-sp);ep.className=f-sp<0?'r':'g';document.getElementById('esave').disabled=!digs(document.getElementById('ef').value)});
 document.addEventListener('keydown',e=>{if(!editing)return;if(e.key==='Escape'){editing=false;Dash.redraw()}else if(e.key==='Enter'&&e.target.id==='ef'){e.preventDefault();document.getElementById('es').focus()}else if(e.key==='Enter'&&e.target.id==='es'){e.preventDefault();saveEdit()}});
 document.addEventListener('focusin',e=>{if(e.target.id==='ef'||e.target.id==='es')setTimeout(()=>e.target.scrollIntoView({block:'center',behavior:'smooth'}),260)});
+
+let cmpMetric='found';
+const prevKeyOf=k=>{const [y,mo]=k.split('-').map(Number),d=new Date(y,mo-2,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!m.days.length)return '';
+ const val=x=>x&&x.hasFound?(cmpMetric==='found'?x.found:cmpMetric==='spent'?x.spent:x.diff):null;
+ const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),N=Math.max(dim,pdim);
+ const cm={},pv={};m.days.forEach(x=>cm[x.d]=x);pm.days.forEach(x=>pv[x.d]=x);
+ const L=dayList(m),lim=L.length,sd=Math.min(sel||lim,lim)||lim;
+ let mx=1;for(let d=1;d<=N;d++){mx=Math.max(mx,Math.abs(val(cm[d])||0),Math.abs(val(pv[d])||0))}
+ const GW=28,BW=9,CH=110,col={found:'#ffffff',spent:'#ff4d5e',diff:'#2bff88'}[cmpMetric];let svg='';
+ for(let d=1;d<=N;d++){const x=(d-1)*GW,a=val(cm[d]),b=val(pv[d]),ha=a==null?0:Math.max(3,Math.abs(a)/mx*CH),hb=b==null?0:Math.max(3,Math.abs(b)/mx*CH),sel_=d===sd,ok=d<=lim;
+  svg+=`<g ${ok?`data-day="${d}"`:''} class="${sel_?'sel':''}"><rect class="hit" x="${x}" y="0" width="${GW}" height="${CH+22}"/>${sel_?`<rect class="selbg" x="${x+1}" y="0" width="${GW-2}" height="${CH+22}" rx="8"/>`:''}`+
+   (b==null?'':`<rect class="pb" x="${x+4}" y="${CH-hb}" width="${BW}" height="${hb}" rx="2.5"/>`)+
+   (a==null?'':`<rect class="cb ${a<0&&cmpMetric==='diff'?'neg':''}" x="${x+4+BW+2}" y="${CH-ha}" width="${BW}" height="${ha}" rx="2.5" style="fill:${a<0&&cmpMetric==='diff'?'#ff4d5e':col}"/>`)+
+   `<text class="cx ${sel_?'on':''}" x="${x+GW/2}" y="${CH+15}" text-anchor="middle">${d}</text></g>`}
+ const a=val(cm[sd]),b=val(pv[sd]);let A=0,B=0;for(let d=1;d<=sd;d++){A+=val(cm[d])||0;B+=val(pv[d])||0}
+ const good=(df)=>cmpMetric==='spent'?df<=0:df>=0;
+ const dl=(p,q)=>{if(p==null||q==null)return '<b class="mut">нет данных</b>';const df=p-q,pc=q?Math.round(df/Math.abs(q)*100):null;return `<b class="${df===0?'mut':good(df)?'g':'r'}">${df>0?'+':df<0?'−':''}${H.fmt(Math.abs(df))}${pc==null?'':' · '+(df>0?'+':df<0?'−':'')+Math.abs(pc)+'%'}</b>`};
+ const names={found:'Найдено',spent:'Реклама',diff:'Прибыль'};
+ return `<div class="card cmp"><div class="ch"><span class="lb">${m.label} и ${pm.label}</span><span class="lgd"><i class="c1"></i>${m.label}<i class="c2"></i>${pm.label}</span></div>
+<div class="mode cm" id="cmpm">${Object.keys(names).map(k=>`<button data-cmp="${k}" class="${k===cmpMetric?'on':''}">${names[k]}</button>`).join('')}</div>
+<div class="cmps" id="cmps"><svg width="${N*GW}" height="${CH+22}" viewBox="0 0 ${N*GW} ${CH+22}">${svg}</svg></div>
+<div class="cs"><div><span>${sd} ${m.gen} · ${m.label}</span><b>${a==null?'—':H.fmt(a)}</b></div><div><span>${sd} ${m.gen} · ${pm.label}</span><b>${b==null?'—':H.fmt(b)}</b></div></div>
+<div class="cs two"><div><span>Разница за день</span>${dl(a,b)}</div><div><span>За 1–${sd} ${m.gen}</span>${dl(A,B)}</div></div></div>`};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-cmp]');if(b){cmpMetric=b.dataset.cmp;Dash.redraw()}});
+new MutationObserver(()=>{const c=document.getElementById('cmps'),g=c&&c.querySelector('g.sel');if(g){const x=g.getBBox().x;c.scrollLeft=x-(c.clientWidth-28)/2}}).observe(document.getElementById('app'),{childList:true});
 Dash.start((s,H)=>{
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
