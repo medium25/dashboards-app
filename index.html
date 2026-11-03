@@ -183,7 +183,11 @@ body.lock{overflow:hidden}
 .cmp.v2 .lA{stroke:#2bff88;stroke-width:3;filter:drop-shadow(0 0 5px #2bff88aa)}.cmp.v2 .lB{stroke:#7b8aa3;stroke-width:2;stroke-dasharray:5 4}.cmp.v2 .dA,.cmp.v2 .endA{fill:#06120c;stroke:#2bff88;stroke-width:2.4}.cmp.v2 .dB{fill:#7b8aa3}.cmp.v2 .bub{fill:#2bff88}.cmp.v2 .bt{fill:#06120c;font-size:11px;font-weight:800}.lgd .c1{background:#2bff88}.lgd .c2{background:#7b8aa3}
 .cmpb .cmpt{margin-top:10px;display:flex;flex-direction:column;gap:2px}.cmpb .cmpt b{font-size:clamp(20px,6vw,24px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.cmpb .cmpt b.g{color:var(--g)}.cmpb .cmpt b.r{color:var(--r)}.cmpb .cmpt b.mut{color:var(--mute)}.cmpb .cmpt span{font-size:13px;color:var(--mute)}
 .pgb .cmp{margin-top:0}
-</style></head><body><div class="wrap"><div id="app"></div></div>
+.cmpr{width:100%;margin:2px 0 12px;padding:14px 18px 14px 14px;display:flex;align-items:center;gap:14px;text-align:left;color:var(--tx);font-family:inherit;cursor:pointer;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:22px;-webkit-tap-highlight-color:transparent}.cmpr:active{transform:scale(.985)}
+.cmpr .bdg{flex:0 0 48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:800;background:#ffffff12}
+.cmpr.g .bdg{background:#2bff8822;color:var(--g);box-shadow:0 0 0 1px #2bff8844,0 0 18px #2bff8833}.cmpr.r .bdg{background:#ff4d5e22;color:var(--r);box-shadow:0 0 0 1px #ff4d5e44}
+.cmpr .tx{flex:1;min-width:0}.cmpr .tx b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em}.cmpr.g .tx b{color:var(--g)}.cmpr.r .tx b{color:var(--r)}.cmpr .tx span{display:block;font-size:13px;color:var(--mute);margin-top:3px}
+.cmpr>i{font-style:normal;font-size:30px;color:var(--mute);line-height:1}</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/seed.js"></script><script src="shared/core.js?v=8"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -307,7 +311,7 @@ const setCmp=v=>{cmpOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.class
 const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!m.days.length)return '';
  const [y,mo]=m.key.split('-').map(Number),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),lim=dayList(m).length;
  const a=cumSeries(m,lim)[lim-1].v,b=cumSeries(pm,pdim)[Math.min(lim,pdim)-1].v,df=a-b,pc=b?Math.round(df/Math.abs(b)*100):null,cls=df===0?'mut':df>0?'g':'r',sg=df>0?'+':df<0?'−':'';
- return `<button class="dcard v1 cmpb" data-cmp-toggle><div class="v1t"><span class="lb">Сравнение с прошлым месяцем</span><i>→</i></div><div class="cmpt"><b class="${cls}">${sg}${H.fmt(Math.abs(df))}${pc==null?'':' · '+sg+Math.abs(pc)+'%'}</b><span>к ${DAT[pm.label]||pm.label.toLowerCase()} на ${lim}-е число</span></div></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
+ return `<button class="cmpr ${cls}" data-cmp-toggle><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span><span class="tx"><b>${pc==null?'':sg+Math.abs(pc)+'% '}к ${DAT[pm.label]||pm.label.toLowerCase()}</b><span>${sg}${H.fmt(Math.abs(df))} · на ${lim}-е число</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
 document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
 Dash.start((s,H)=>{
