@@ -5,6 +5,7 @@
    Store shape per project:  { "YYYY-MM": { days: { "1": [found, spent], ... }, summary: null | {found, spent} } }
    - a month with daily rows gets its totals from the days
    - a month without daily rows (old data) keeps only a monthly summary
+   day value: [found, spent, ts] (ts = ms of the last edit; [null, 0, ts] = cleared day). Used to merge devices.
    profit = found - spent                                                                         */
 (function () {
   const CONFIG = {
@@ -34,7 +35,7 @@
   const nowKey = () => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0'); };
   function buildMonth(key, data) {
     const mo = +key.split('-')[1];
-    const days = Object.keys((data && data.days) || {}).map(Number).sort((a, b) => a - b).map((d) => {
+    const days = Object.keys((data && data.days) || {}).filter((d) => { const v = data.days[d]; return !(v[0] == null && !v[1]); }).map(Number).sort((a, b) => a - b).map((d) => {
       const [f, s] = data.days[d];
       return { d, hasFound: f != null, found: f || 0, spent: s || 0, diff: (f || 0) - (s || 0) };
     });
@@ -67,12 +68,16 @@
     if (!isFinite(found) || found < 0 || !isFinite(spent) || spent < 0) throw new Error('bad amount');
     const m = st[key] || (st[key] = { days: {}, summary: null });
     // a month that only had a monthly summary starts its own daily log from this entry
-    m.days = m.days || {}; m.days[String(day)] = [Math.round(found), Math.round(spent)]; m.summary = null;
-    saveStore(p, st); return load();
+    const ts = Date.now(), v = [Math.round(found), Math.round(spent), ts];
+    m.days = m.days || {}; m.days[String(day)] = v; m.summary = null;
+    saveStore(p, st); emitPatch({ [key]: { days: { [String(day)]: v } } }); return load();
   }
   function clearDay(key, day) {
     const p = curProject(), st = loadStore(p);
-    if (st[key] && st[key].days) { delete st[key].days[String(day)]; saveStore(p, st); }
+    if (st[key] && st[key].days) {
+      const v = [null, 0, Date.now()];                       // tombstone, so the deletion also reaches other devices
+      st[key].days[String(day)] = v; saveStore(p, st); emitPatch({ [key]: { days: { [String(day)]: v } } });
+    }
     return load();
   }
   function exportData() { const p = curProject(); return JSON.stringify({ app: 'dashboards', version: 1, exported: new Date().toISOString(), projects: { [p.id]: loadStore(p) } }, null, 1); }
@@ -86,7 +91,7 @@
       const m = st[k] || {}, days = {};
       for (const d of Object.keys(m.days || {})) {
         const v = m.days[d];
-        if (+d >= 1 && +d <= 31 && Array.isArray(v) && (v[0] == null || isFinite(v[0])) && isFinite(v[1] || 0)) days[d] = [v[0] == null ? null : Math.round(v[0]), Math.round(v[1] || 0)];
+        if (+d >= 1 && +d <= 31 && Array.isArray(v) && (v[0] == null || isFinite(v[0])) && isFinite(v[1] || 0)) days[d] = [v[0] == null ? null : Math.round(v[0]), Math.round(v[1] || 0), isFinite(v[2]) ? v[2] : 0];
       }
       const sm = m.summary && isFinite(m.summary.found) && isFinite(m.summary.spent) ? { found: Math.round(m.summary.found), spent: Math.round(m.summary.spent) } : null;
       clean[k] = { days, summary: Object.keys(days).length ? null : sm };
@@ -94,6 +99,37 @@
     if (!Object.keys(clean).length) throw new Error('В файле нет ни одного месяца.');
     saveStore(p, clean); return load();
   }
+
+  /* ---------- sync with the cloud (see shared/sync.js) ---------- */
+  let syncPush = null;
+  function emitPatch(patch) { if (syncPush) { try { syncPush(patch); } catch (e) {} } }
+  // Merge a remote copy into the local store, per day, newest edit wins.
+  // Returns { changed, push } where push = entries that are newer locally (to upload).
+  function mergeRemote(remote) {
+    const p = curProject(), st = loadStore(p); let changed = false; const push = {};
+    const put = (k, d, v) => { (push[k] = push[k] || { days: {} }).days[d] = v; };
+    for (const k of Object.keys(remote || {})) {
+      if (!/^\d{4}-\d{2}$/.test(k)) continue;
+      const rm = remote[k] || {}, lm = st[k] || (st[k] = { days: {}, summary: null });
+      lm.days = lm.days || {};
+      for (const d of Object.keys(rm.days || {})) {
+        const rv = rm.days[d]; if (!Array.isArray(rv)) continue;
+        const lv = lm.days[d], rts = rv[2] || 0, lts = lv ? (lv[2] || 0) : -1;
+        if (!lv || rts > lts) { lm.days[d] = rv; changed = true; if (lm.summary) lm.summary = null; }
+        else if (lts > rts) put(k, d, lv);
+      }
+      if (!Object.keys(lm.days).length && !lm.summary && rm.summary) { lm.summary = rm.summary; changed = true; }
+    }
+    for (const k of Object.keys(st)) {                       // local entries the cloud does not have yet
+      const rm = (remote && remote[k]) || {};
+      for (const d of Object.keys(st[k].days || {})) if (!(rm.days && rm.days[d])) put(k, d, st[k].days[d]);
+      if (st[k].summary && !(rm.summary) && !Object.keys(st[k].days || {}).length) (push[k] = push[k] || { days: {} }).summary = st[k].summary;
+    }
+    if (changed) { saveStore(p, st); load(); }
+    return { changed, push: Object.keys(push).length ? push : null };
+  }
+  const setSyncPush = (fn) => { syncPush = fn; };
+  const allLocal = () => clone(loadStore(curProject()));
 
   /* ---------- formatting ---------- */
   const nf = new Intl.NumberFormat('ru-RU');
@@ -118,7 +154,8 @@
   const cur = () => (state.months ? state.months[state.mi] : null);
   const H = { weekday, fmt, som, short, pct, esc, config: CONFIG };
 
-  function draw() { document.getElementById('app').innerHTML = renderFn({ ...state, project: curProject(), month: cur() }, H); }
+  let needsDraw = false;
+  function draw() { needsDraw = false; document.getElementById('app').innerHTML = renderFn({ ...state, project: curProject(), month: cur() }, H); }
   function load() {
     try {
       const keep = cur() && cur().key;
@@ -127,7 +164,7 @@
       state.mi = i >= 0 ? i : 0;
       state.status = 'ready'; state.error = null; state.updated = new Date();
     } catch (e) { state.status = 'error'; state.error = e.message; }
-    draw();
+    if (window.Dash && window.Dash.canRedraw && !window.Dash.canRedraw()) needsDraw = true; else draw();
     return Promise.resolve(state.status);
   }
   function start(fn) {
@@ -141,5 +178,5 @@
     let day = new Date().getDate();
     document.addEventListener('visibilitychange', () => { if (!document.hidden && new Date().getDate() !== day) { day = new Date().getDate(); state.mi = 0; load(); } });
   }
-  window.Dash = { start, H, redraw: draw, cur, reload: load, state, setDay, clearDay, exportData, importData };
+  window.Dash = { start, H, redraw: draw, cur, reload: load, state, setDay, clearDay, exportData, importData, mergeRemote, setSyncPush, allLocal };
 })();

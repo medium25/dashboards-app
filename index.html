@@ -188,7 +188,7 @@ body.lock{overflow:hidden}
 .cmpr.g .bdg{background:#2bff8822;color:var(--g);box-shadow:0 0 0 1px #2bff8844,0 0 18px #2bff8833}.cmpr.r .bdg{background:#ff4d5e22;color:var(--r);box-shadow:0 0 0 1px #ff4d5e44}
 .cmpr .tx{flex:1;min-width:0}.cmpr .tx b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em}.cmpr.g .tx b{color:var(--g)}.cmpr.r .tx b{color:var(--r)}.cmpr .tx span{display:block;font-size:13px;color:var(--mute);margin-top:3px}
 .cmpr>i{font-style:normal;font-size:30px;color:var(--mute);line-height:1}</style></head><body><div class="wrap"><div id="app"></div></div>
-<script src="shared/seed.js"></script><script src="shared/core.js?v=8"></script><script>
+<script src="shared/seed.js"></script><script src="shared/fb-config.js"></script><script src="shared/core.js?v=9"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
 let keepScroll=0;
@@ -314,6 +314,10 @@ const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyO
  return `<button class="cmpr ${cls}" data-cmp-toggle><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span><span class="tx"><b>${pc==null?'':sg+Math.abs(pc)+'% '}к ${DAT[pm.label]||pm.label.toLowerCase()}</b><span>${sg}${H.fmt(Math.abs(df))} · на ${lim}-е число</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
 document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
+
+const SYNC_TXT={noconfig:'Данные только на этом устройстве',off:'Данные только на этом устройстве',syncing:'Синхронизация…',ok:'☁ Данные в облаке',offline:'Нет сети — отправится позже',error:'Ошибка синхронизации'};
+const syncLabel=()=>SYNC_TXT[(window.Sync&&Sync.state().status)||'off']||'';
+Dash.canRedraw=()=>!editing;
 Dash.start((s,H)=>{
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
@@ -332,13 +336,13 @@ Dash.start((s,H)=>{
   ${daysBlock(m,H,c)}
   ${cmpBlock(m,H)}
   ${inl(s)}
-  <div class="foot"><span>Данные хранятся на этом устройстве</span><button data-backup>Резервная копия</button></div>`;
+  <div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Синхронизация</button></div>`;
 });
 // keep active month chip visible in the scroller after re-render
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
 </script>
-<div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Резервная копия</h2>
-<p class="help">Данные хранятся только на этом устройстве. Сохрани копию, чтобы не потерять их или перенести на другой телефон.</p>
+<div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Синхронизация и копия</h2><div id="syncbox"></div>
+<label class="f">Резервная копия</label><p class="help"> Сохрани копию, чтобы не потерять их или перенести на другой телефон.</p>
 <button class="done" id="kexp">Сохранить копию</button><button class="done alt" id="kimp">Загрузить из файла</button><input type="file" id="kfile" accept="application/json,.json" hidden>
 <div class="err" id="kerr"></div><button class="reset" id="kclose">Закрыть</button></div></div>
 <div id="inst" role="note"><div class="ic2"></div><p><b>Установи как приложение.</b> Нажми <svg class="sh" viewBox="0 0 24 24" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/></svg> «Поделиться», затем <b>«На экран «Домой»»</b>.</p><button id="instx">Понятно</button></div>
@@ -355,6 +359,21 @@ $('kexp').onclick=async()=>{const txt=D().exportData(),name='uchet-'+new Date().
 $('kimp').onclick=()=>$('kfile').click();
 $('kfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;kerr('');
  try{const txt=await f.text();if(!confirm('Заменить все данные на этом устройстве данными из файла?'))return;await D().importData(txt);$('kov').classList.remove('open');toast('Данные загружены')}catch(err){kerr(err.message)}};
+// ---- sync box ----
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ST={ok:'Всё сохранено в облаке',syncing:'Синхронизация…',offline:'Нет сети — данные отправятся при подключении',error:'Ошибка: '};
+function renderSync(){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)return;
+ const lbl=document.getElementById('synlbl');if(lbl)lbl.textContent=syncLabel();
+ if(S.status==='noconfig'){box.innerHTML='<p class="help">Облако ещё не подключено: в приложении нет настроек Firebase. Данные хранятся только на этом устройстве.</p>';return}
+ if(S.status==='off'||!S.email){box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="email" inputmode="email" autocomplete="username" autocapitalize="off" placeholder="Почта"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button>'+(S.error?'':'');return}
+ box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(S.email)+'</b></p><p class="help">'+esc(S.status==='error'?ST.error+S.error:(ST[S.status]||''))+'</p><button class="done alt" id="sout">Выйти</button>'}
+document.addEventListener('click',async e=>{
+ if(e.target.closest('#sgo')){const em=$('sem').value.trim(),pw=$('spw').value,er=$('serr');if(!em||!pw){er.textContent='Введи почту и пароль';er.classList.add('on');return}
+  e.target.closest('#sgo').textContent='Вхожу…';try{await Sync.signIn(em,pw)}catch(err){renderSync();const x=$('serr');x.textContent='Не удалось войти: '+(err.code||err.message);x.classList.add('on')}}
+ if(e.target.closest('#sout')){await Sync.signOut()}});
+window.addEventListener('load',()=>{renderSync();if(window.Sync)Sync.onChange(renderSync)});
+document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))renderSync()});
+
 })();
 </script>
 <script>
@@ -394,4 +413,5 @@ $('kfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)
  document.addEventListener('dblclick',e=>{const el=nameEl(e);if(el&&!el.isContentEditable)edit(el)});
  document.addEventListener('focusin',e=>{if(e.target.matches&&e.target.matches('[data-name]')){const r=document.createRange();r.selectNodeContents(e.target);const sel=getSelection();sel.removeAllRanges();sel.addRange(r)}});
 })();
-</script></body></html>
+</script>
+<script type="module" src="shared/sync.js"></script></body></html>
