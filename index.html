@@ -204,16 +204,21 @@ body.lock{overflow:hidden}
 (function(){
  var shown=false;
  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
- window.bootReset=function(){var done=function(){location.reload()};
+ function fresh(){location.replace(location.pathname+'?r='+Date.now())}
+ window.bootReload=function(b){if(b)b.textContent='Перезагружаю…';fresh()};
+ window.bootReset=function(b){if(b)b.textContent='Сбрасываю…';var done=false;function fin(){if(done)return;done=true;fresh()}
+  setTimeout(fin,1500);
   try{var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));
    if(window.caches&&caches.keys)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}));
-   Promise.all(p).then(done,done)}catch(e){done()}};
+   Promise.all(p).then(fin,fin)}catch(e){fin()}};
+ function diag(){var f=[];try{f.push('Dash:'+typeof window.Dash);f.push('данные:'+(window.SEED?'есть':'нет'));f.push('Sync:'+typeof window.Sync);f.push('standalone:'+(navigator.standalone===true?'да':'нет'));
+  f.push('sw:'+(navigator.serviceWorker&&navigator.serviceWorker.controller?'вкл':'выкл'));f.push(navigator.userAgent.replace(/^Mozilla\/5\.0 /,'').slice(0,70))}catch(e){}return f.join(' · ')}
  window.showBootError=function(msg){if(shown)return;shown=true;var el=document.getElementById('app')||document.body;
   el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#e8eef7;font-family:-apple-system,system-ui,sans-serif"><div style="font-size:20px;font-weight:800;margin-bottom:10px">Приложение не запустилось</div>'+
    '<div style="font-size:13px;color:#ffb3bb;background:#ff4d5e18;border-radius:12px;padding:10px 12px;margin:0 auto 18px;max-width:420px;word-break:break-word">'+esc(msg)+'</div>'+
-   '<button onclick="location.reload()" style="min-height:48px;padding:0 22px;border:0;border-radius:14px;background:#fff;color:#0b0f17;font-weight:800;font-size:16px;margin:4px">Перезагрузить</button>'+
-   '<button onclick="bootReset()" style="min-height:48px;padding:0 22px;border:1px solid #2c3a52;border-radius:14px;background:#111826;color:#e8eef7;font-weight:700;font-size:16px;margin:4px">Сбросить кеш и открыть заново</button>'+
-   '<div style="font-size:12px;color:#7b8aa3;margin-top:14px">Ваши данные не удаляются.</div></div>'};
+   '<button type="button" onclick="bootReload(this)" style="min-height:52px;padding:0 24px;border:0;border-radius:14px;background:#fff;color:#0b0f17;font-weight:800;font-size:16px;margin:4px;cursor:pointer">Перезагрузить</button>'+
+   '<button type="button" onclick="bootReset(this)" style="min-height:52px;padding:0 24px;border:1px solid #2c3a52;border-radius:14px;background:#111826;color:#e8eef7;font-weight:700;font-size:16px;margin:4px;cursor:pointer">Сбросить кеш и открыть заново</button>'+
+   '<div style="font-size:11px;color:#7b8aa3;margin:18px auto 0;max-width:420px;word-break:break-word;line-height:1.5">'+esc(diag())+'</div><div style="font-size:12px;color:#7b8aa3;margin-top:8px">Ваши данные не удаляются.</div></div>'};
  window.addEventListener('error',function(e){if(e&&e.message&&!/ResizeObserver/.test(e.message))window.showBootError(e.message+(e.filename?' ('+String(e.filename).split('/').pop()+':'+e.lineno+')':''))});
  window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r&&/Firebase|firebase|gstatic/.test(String(r.stack||r)))return;window.showBootError('Ошибка: '+(r&&r.message?r.message:r))});
  setTimeout(function(){if(!(window.Dash&&window.Dash.state&&window.Dash.state.status==='ready'))window.showBootError('Не загрузились файлы приложения (проверь интернет)')},6000);
@@ -430,7 +435,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))rende
   if(!force&&(!ios||standalone||dismissed))return;
   const box=document.getElementById('inst');setTimeout(()=>box.classList.add('show'),2500);
   document.getElementById('instx').onclick=()=>{box.classList.remove('show');try{localStorage.setItem('instHint','1')}catch(e){}};})();
- if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{try{r.update()}catch(e){}}).catch(()=>{}));let hadCtl=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtl&&!sessionStorage.getItem('swr')){sessionStorage.setItem('swr','1');location.reload()}hadCtl=true})};
+ if('serviceWorker' in navigator&&navigator.serviceWorker.getRegistrations)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(x=>x.unregister())).catch(()=>{});;
 })();
 </script>
 <script>
