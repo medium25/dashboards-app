@@ -430,7 +430,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))rende
   if(!force&&(!ios||standalone||dismissed))return;
   const box=document.getElementById('inst');setTimeout(()=>box.classList.add('show'),2500);
   document.getElementById('instx').onclick=()=>{box.classList.remove('show');try{localStorage.setItem('instHint','1')}catch(e){}};})();
- if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+ if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{try{r.update()}catch(e){}}).catch(()=>{}));let hadCtl=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtl&&!sessionStorage.getItem('swr')){sessionStorage.setItem('swr','1');location.reload()}hadCtl=true})};
 })();
 </script>
 <script>
