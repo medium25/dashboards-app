@@ -326,7 +326,7 @@ Dash.start((s,H)=>{
   if(s.status==='error')return top+`<div class="status err">Ошибка: ${H.esc(s.error)}<br><br><button class="tab on" data-refresh>Повторить</button></div>`;
   const m=s.month,x=m.summary,c=s.project.currency,t=totals(m);
   const rows=m.days.map(r=>{const w=H.weekday(m,r.d);return `<div class="ri ${w.weekend?'we':''}"><div class="dt">${r.d} ${m.gen}<span class="wd">${w.short}</span></div><div class="c f">${f(r.found)}</div><div class="c s">${f(r.spent)}</div><div class="c ${r.diff<0?'n':'p'}">${f(r.diff)}</div></div>`}).join('');
-  const lkI=entryInfo(s),lk=lkI.st==='err',lkMiss=lk?listDays(lkI.missing,lkI.m):'';
+  const lkI=entryInfo(s),lk=lkI.st==='err'&&!!s.month&&s.month.key===lkI.key,lkMiss=lk?listDays(lkI.missing,lkI.m):'';
   return top+`
   <div class="grp${lk?' lkg':''}">
   <div class="card hero"><h3>Чистая прибыль</h3><div class="num g glow-g">${f(x.profit)}<small>${c}</small></div></div>
