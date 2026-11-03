@@ -206,7 +206,7 @@ new MutationObserver(()=>{const s=document.getElementById('strip'),a=s&&s.queryS
 
 
 let dOpen=false,fresh=false;
-const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);const GI=entryInfo(Dash.state);return `${m.key===GI.key&&GI.missing.length?`<div class="gapnote">Не заполнено: ${listDays(GI.missing,m)}. Пока есть пропуски, итоги неверные.</div>`:''}<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>${cmpHTML(m,H)}`};
+const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);const GI=entryInfo(Dash.state);return `${m.key===GI.key&&GI.missing.length?`<div class="gapnote">Не заполнено: ${listDays(GI.missing,m)}. Пока есть пропуски, итоги неверные.</div>`:''}<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>`};
 const setOpen=v=>{dOpen=v;if(!v)editing=false;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
@@ -314,6 +314,7 @@ Dash.start((s,H)=>{
     <div class="card"><h3>Реклама</h3><div class="num r glow-r">${f(x.spent)}<small>${c}</small></div></div></div>
   ${lk?`<div class="peekhint">⚠ Данные неполные: ${lkMiss}. Зажми, чтобы подсмотреть</div>`:''}</div>
   ${daysBlock(m,H,c)}
+  ${cmpHTML(m,H)}
   ${inl(s)}
   <div class="foot"><span>Данные хранятся на этом устройстве</span><button data-backup>Резервная копия</button></div>`;
 });
