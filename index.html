@@ -180,13 +180,16 @@ body.lock{overflow:hidden}
 .cmpsvg .gl{stroke:#ffffff12;stroke-width:1}.cmpsvg .vl{stroke:#ffffff08;stroke-width:1}.cmpsvg .ya,.cmpsvg .xa{fill:var(--mute);font-size:10px;font-weight:600}
 .cmpsvg .lA,.cmpsvg .lB{fill:none;stroke-linecap:round;stroke-linejoin:round}.cmpsvg .hit{fill:transparent;cursor:pointer}.cmpsvg .sx{stroke:#ffffff33;stroke-dasharray:3 3}
 .cs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.cs.one{grid-template-columns:1fr;margin-top:8px}.cs>div{background:#ffffff08;border-radius:14px;padding:10px 12px;min-width:0}.cs span{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}.cs b{font-size:17px;font-variant-numeric:tabular-nums;font-weight:800}.cs b.g{color:var(--g)}.cs b.r{color:var(--r)}.cs b.mut{color:var(--mute);font-weight:600}
-.cmp.v2 .lA{stroke:#2bff88;stroke-width:3;filter:drop-shadow(0 0 5px #2bff88aa)}.cmp.v2 .lB{stroke:#7b8aa3;stroke-width:2;stroke-dasharray:5 4}.cmp.v2 .dA,.cmp.v2 .endA{fill:#06120c;stroke:#2bff88;stroke-width:2.4}.cmp.v2 .dB{fill:#7b8aa3}.cmp.v2 .bub{fill:#2bff88}.cmp.v2 .bt{fill:#06120c;font-size:11px;font-weight:800}.lgd .c1{background:#2bff88}.lgd .c2{background:#7b8aa3}</style></head><body><div class="wrap"><div id="app"></div></div>
+.cmp.v2 .lA{stroke:#2bff88;stroke-width:3;filter:drop-shadow(0 0 5px #2bff88aa)}.cmp.v2 .lB{stroke:#7b8aa3;stroke-width:2;stroke-dasharray:5 4}.cmp.v2 .dA,.cmp.v2 .endA{fill:#06120c;stroke:#2bff88;stroke-width:2.4}.cmp.v2 .dB{fill:#7b8aa3}.cmp.v2 .bub{fill:#2bff88}.cmp.v2 .bt{fill:#06120c;font-size:11px;font-weight:800}.lgd .c1{background:#2bff88}.lgd .c2{background:#7b8aa3}
+.cmpb .cmpt{margin-top:10px;display:flex;flex-direction:column;gap:2px}.cmpb .cmpt b{font-size:clamp(20px,6vw,24px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.cmpb .cmpt b.g{color:var(--g)}.cmpb .cmpt b.r{color:var(--r)}.cmpb .cmpt b.mut{color:var(--mute)}.cmpb .cmpt span{font-size:13px;color:var(--mute)}
+.pgb .cmp{margin-top:0}
+</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/seed.js"></script><script src="shared/core.js?v=8"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
 let keepScroll=0;
 
-let sel=null,selMonth=null,editing=false;
+let sel=null,selMonth=null,editing=false,cmpOpen=false;
 const MN=['','янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 const dayList=m=>{const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),now=new Date(),nk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
  const today=m.key===nk?now.getDate():(m.key<nk?dim+1:0),by={};m.days.forEach(x=>{if(x.hasFound)by[x.d]=x});
@@ -207,7 +210,7 @@ new MutationObserver(()=>{const s=document.getElementById('strip'),a=s&&s.queryS
 
 let dOpen=false,fresh=false;
 const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);const GI=entryInfo(Dash.state);return `${m.key===GI.key&&GI.missing.length?`<div class="gapnote">Не заполнено: ${listDays(GI.missing,m)}. Пока есть пропуски, итоги неверные.</div>`:''}<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>`};
-const setOpen=v=>{dOpen=v;if(!v)editing=false;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
+const setOpen=v=>{dOpen=v;if(!v)editing=false;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',(dOpen||cmpOpen)&&true)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
 
@@ -298,6 +301,15 @@ const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf
 <svg class="cmpsvg" viewBox="0 0 ${W} ${HT}" preserveAspectRatio="xMidYMid meet">${grid}${xa}${under}<path class="lB" d="${pathB}"/><path class="lA" d="${pathA}"/>${over}${mk}${hit}</svg>
 <div class="cs"><div><span>${sd} ${m.gen} · ${m.label}</span><b>${H.fmt(a)}</b></div><div><span>${sd} ${m.gen} · ${pm.label}</span><b>${H.fmt(b)}</b></div></div>
 <div class="cs one"><div><span>Разница на ${sd} ${m.gen}</span><b class="${cls}">${sg}${H.fmt(Math.abs(df))}${pc==null?'':' · '+sg+Math.abs(pc)+'%'}</b></div></div></div>`};
+
+const DAT={Январь:'январю',Февраль:'февралю',Март:'марту',Апрель:'апрелю',Май:'маю',Июнь:'июню',Июль:'июлю',Август:'августу',Сентябрь:'сентябрю',Октябрь:'октябрю',Ноябрь:'ноябрю',Декабрь:'декабрю'};
+const setCmp=v=>{cmpOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',cmpOpen||dOpen)};
+const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!m.days.length)return '';
+ const [y,mo]=m.key.split('-').map(Number),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),lim=dayList(m).length;
+ const a=cumSeries(m,lim)[lim-1].v,b=cumSeries(pm,pdim)[Math.min(lim,pdim)-1].v,df=a-b,pc=b?Math.round(df/Math.abs(b)*100):null,cls=df===0?'mut':df>0?'g':'r',sg=df>0?'+':df<0?'−':'';
+ return `<button class="dcard v1 cmpb" data-cmp-toggle><div class="v1t"><span class="lb">Сравнение с прошлым месяцем</span><i>→</i></div><div class="cmpt"><b class="${cls}">${sg}${H.fmt(Math.abs(df))}${pc==null?'':' · '+sg+Math.abs(pc)+'%'}</b><span>к ${DAT[pm.label]||pm.label.toLowerCase()} на ${lim}-е число</span></div></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
+document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
 Dash.start((s,H)=>{
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
@@ -314,7 +326,7 @@ Dash.start((s,H)=>{
     <div class="card"><h3>Реклама</h3><div class="num r glow-r">${f(x.spent)}<small>${c}</small></div></div></div>
   ${lk?`<div class="peekhint">⚠ Данные неполные: ${lkMiss}. Зажми, чтобы подсмотреть</div>`:''}</div>
   ${daysBlock(m,H,c)}
-  ${cmpHTML(m,H)}
+  ${cmpBlock(m,H)}
   ${inl(s)}
   <div class="foot"><span>Данные хранятся на этом устройстве</span><button data-backup>Резервная копия</button></div>`;
 });
