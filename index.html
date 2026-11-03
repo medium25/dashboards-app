@@ -199,7 +199,27 @@ body.lock{overflow:hidden}
 .cmpr.cc .go{font-style:normal;font-size:18px;line-height:1;opacity:.85;color:inherit}
 .cmpr.cc .amt{display:block;font-size:clamp(24px,7.4vw,30px);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-top:5px;font-variant-numeric:tabular-nums;color:inherit!important}
 .cmpr.cc .t3{display:block;font-size:12px;font-weight:700;opacity:.75;margin-top:4px;color:inherit}
-</style></head><body><div class="wrap"><div id="app"></div></div>
+</style></head><body><script>
+// Safety net: if the app fails to start (blank screen), show why and offer a reset instead of an empty page.
+(function(){
+ var shown=false;
+ function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+ window.bootReset=function(){var done=function(){location.reload()};
+  try{var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));
+   if(window.caches&&caches.keys)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}));
+   Promise.all(p).then(done,done)}catch(e){done()}};
+ window.showBootError=function(msg){if(shown)return;shown=true;var el=document.getElementById('app')||document.body;
+  el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#e8eef7;font-family:-apple-system,system-ui,sans-serif"><div style="font-size:20px;font-weight:800;margin-bottom:10px">Приложение не запустилось</div>'+
+   '<div style="font-size:13px;color:#ffb3bb;background:#ff4d5e18;border-radius:12px;padding:10px 12px;margin:0 auto 18px;max-width:420px;word-break:break-word">'+esc(msg)+'</div>'+
+   '<button onclick="location.reload()" style="min-height:48px;padding:0 22px;border:0;border-radius:14px;background:#fff;color:#0b0f17;font-weight:800;font-size:16px;margin:4px">Перезагрузить</button>'+
+   '<button onclick="bootReset()" style="min-height:48px;padding:0 22px;border:1px solid #2c3a52;border-radius:14px;background:#111826;color:#e8eef7;font-weight:700;font-size:16px;margin:4px">Сбросить кеш и открыть заново</button>'+
+   '<div style="font-size:12px;color:#7b8aa3;margin-top:14px">Ваши данные не удаляются.</div></div>'};
+ window.addEventListener('error',function(e){if(e&&e.message&&!/ResizeObserver/.test(e.message))window.showBootError(e.message+(e.filename?' ('+String(e.filename).split('/').pop()+':'+e.lineno+')':''))});
+ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r&&/Firebase|firebase|gstatic/.test(String(r.stack||r)))return;window.showBootError('Ошибка: '+(r&&r.message?r.message:r))});
+ setTimeout(function(){if(!(window.Dash&&window.Dash.state&&window.Dash.state.status==='ready'))window.showBootError('Не загрузились файлы приложения (проверь интернет)')},6000);
+})();
+</script>
+<div class="wrap"><div id="app"><div class="status">Загрузка…</div></div></div>
 <script src="shared/seed.js"></script><script src="shared/fb-config.js"></script><script src="shared/core.js?v=9"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
