@@ -196,7 +196,7 @@ body.lock{overflow:hidden}
 .cmpr.cc.g{background:linear-gradient(135deg,#2bff88,#17c96a);color:#04120a}.cmpr.cc.r{background:linear-gradient(135deg,#ff6b7a,#e03a4c);color:#fff}
 .cmpr.cc .r1{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .cmpr.cc .t1{font-size:clamp(17px,5vw,19px);font-weight:800;letter-spacing:-.01em;color:inherit!important}
-.cmpr.cc .bdg{flex:0 0 34px;height:34px;font-size:18px;background:#00000026;box-shadow:none!important;color:inherit!important}
+.cmpr.cc .go{font-style:normal;font-size:20px;line-height:1;opacity:.85;color:inherit}
 .cmpr.cc .amt{display:block;font-size:clamp(34px,10.5vw,44px);font-weight:800;letter-spacing:-.04em;line-height:1.05;margin-top:10px;font-variant-numeric:tabular-nums;color:inherit!important}
 .cmpr.cc .t3{display:block;font-size:13px;font-weight:700;opacity:.75;margin-top:6px;color:inherit}
 </style></head><body><div class="wrap"><div id="app"></div></div>
@@ -327,7 +327,7 @@ const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyO
  const a=cumSeries(m,lim)[lim-1].v,b=cumSeries(pm,pdim)[Math.min(lim,pdim)-1].v,df=a-b,pc=b?Math.round(df/Math.abs(b)*100):null,cls=df===0?'mut':df>0?'g':'r',sg=df>0?'+':df<0?'−':'';
  if(!m.days.length)return `<button class="cmpr" data-cmp-toggle><span class="bdg">=</span><span class="tx"><b>Сравнение с ${INS[pm.label]||pm.label.toLowerCase()}</b><span>Внеси данные за ${m.label.toLowerCase()}, чтобы увидеть разницу</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`;
  const _eq=df===0,_ah=df>0,_t=_eq?'Идём наравне с '+(INS[pm.label]||pm.label.toLowerCase()):(_ah?'Опережаем '+pm.label.toLowerCase():'Отстаём от '+pm.gen),_am=_eq?"0 so'm":sg+H.fmt(Math.abs(df))+" so'm",_d='на '+lim+' '+m.gen;
- return `<button class="cmpr cc ${cls}" data-cmp-toggle><span class="r1"><b class="t1">${_t}</b><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span></span><b class="amt">${_am}</b><span class="t3">${_d}</span></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
+ return `<button class="cmpr cc ${cls}" data-cmp-toggle><span class="r1"><b class="t1">${_t}</b><i class="go">→</i></span><b class="amt">${_am}</b><span class="t3">${_d}</span></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
 document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
 
