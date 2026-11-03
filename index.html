@@ -153,6 +153,10 @@ body.lock{overflow:hidden}
 .delday{width:100%;min-height:44px;margin-top:2px;border:0;background:none;color:#ff9aa4;font-weight:600;font-size:15px;font-family:inherit;cursor:pointer}
 .bsh .done.alt{background:#ffffff14;color:var(--tx);margin-top:10px}
 .editday{width:100%;min-height:46px;margin-top:12px;border-radius:14px;border:1px solid #2c3a52;background:#ffffff0a;color:var(--tx);font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}
+
+.col .t i.gap{height:4px;background:#ff4d5e;opacity:.85}.col .t i.fut{height:4px;background:#ffffff22;opacity:1}
+.nodata{margin:14px 2px 4px;padding:14px 16px;border-radius:14px;background:#ffffff08;color:var(--mute);font-size:15px;line-height:1.4}.nodata.late{background:#ff4d5e18;color:#ffb3bb}
+.editday.primary{background:var(--b);border-color:var(--b);color:#fff;min-height:54px;font-size:16px;font-weight:800}
 </style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/seed.js"></script><script src="shared/core.js?v=8"></script><script>
 const f=n=>Dash.H.fmt(n);
@@ -161,12 +165,17 @@ let keepScroll=0;
 
 let sel=null,selMonth=null;
 const MN=['','янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
-const pick=m=>{ if(selMonth!==m.key){selMonth=m.key;sel=m.days.length?m.days[m.days.length-1].d:null} return m.days.find(x=>x.d===sel)||m.days[m.days.length-1]||null };
+const dayList=m=>{const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),now=new Date(),nk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+ const today=m.key===nk?now.getDate():(m.key<nk?dim+1:0),by={};m.days.forEach(x=>{if(x.hasFound)by[x.d]=x});
+ const lim=Math.min(dim,Math.max(m.key===nk?now.getDate():(m.key<nk?dim:0),m.days.length?m.days[m.days.length-1].d:0)),out=[];
+ for(let d=1;d<=lim;d++)out.push(by[d]||{d,hasFound:false,found:0,spent:0,diff:0,empty:true,late:d<today});return out};
+const pick=m=>{const L=dayList(m);if(!L.length)return null;if(selMonth!==m.key){selMonth=m.key;const f=L.filter(x=>!x.empty);sel=(f.length?f[f.length-1]:L[L.length-1]).d}
+ return L.find(x=>x.d===sel)||L[L.length-1]};
 document.addEventListener('click',e=>{const t=e.target.closest('[data-day]');if(!t)return;sel=+t.dataset.day;Dash.redraw();});
-const detail=(m,r,H,cur)=>{if(!r)return'';const w=H.weekday(m,r.d);return `<div class="card det ${w.weekend?'we':''}"><div class="dh"><div><div class="dd">${r.d} ${m.gen}</div><div class="dw">${w.full}</div></div></div><div class="rw"><span>Найдено</span><b class="b">${H.fmt(r.found)}</b></div><div class="rw"><span>Реклама</span><b class="r">${H.fmt(r.spent)}</b></div><div class="rw"><span>Прибыль</span><b class="${r.diff<0?'r':'g'}">${H.fmt(r.diff)}</b></div><button class="editday" data-entry-day="${r.d}" data-entry-key="${m.key}">Изменить день</button></div>`};
+const detail=(m,r,H,cur)=>{if(!r)return'';const w=H.weekday(m,r.d);if(r.empty)return `<div class="card det ${w.weekend?'we':''}"><div class="dh"><div><div class="dd">${r.d} ${m.gen}</div><div class="dw">${w.full}</div></div></div><div class="nodata ${r.late?'late':''}">${r.late?'Данные за этот день не внесены':'За этот день пока нет данных'}</div><button class="editday primary" data-entry-day="${r.d}" data-entry-key="${m.key}">Внести за этот день</button></div>`;return `<div class="card det ${w.weekend?'we':''}"><div class="dh"><div><div class="dd">${r.d} ${m.gen}</div><div class="dw">${w.full}</div></div></div><div class="rw"><span>Найдено</span><b class="b">${H.fmt(r.found)}</b></div><div class="rw"><span>Реклама</span><b class="r">${H.fmt(r.spent)}</b></div><div class="rw"><span>Прибыль</span><b class="${r.diff<0?'r':'g'}">${H.fmt(r.diff)}</b></div><button class="editday" data-entry-day="${r.d}" data-entry-key="${m.key}">Изменить день</button></div>`};
 
-const stripHTML=(m,H,r)=>{const mx=Math.max(1,...m.days.map(x=>Math.abs(x.diff)));return `<div class="strip" id="strip">`+m.days.map(x=>{const w=H.weekday(m,x.d);return `<div class="col ${w.weekend?'we':''} ${x.d===r.d?'on':''}" data-day="${x.d}"><div class="t"><i class="${x.diff<0?'neg':''}" style="height:${Math.max(4,Math.abs(x.diff)/mx*92)}px"></i></div><span>${x.d}</span></div>`}).join('')+`</div>`};
-const step=(dir)=>{const m=Dash.cur();if(!m)return;const i=m.days.findIndex(x=>x.d===sel)+dir;if(i>=0&&i<m.days.length){sel=m.days[i].d;Dash.redraw()}};
+const stripHTML=(m,H,r)=>{const mx=Math.max(1,...m.days.map(x=>Math.abs(x.diff)));return `<div class="strip" id="strip">`+dayList(m).map(x=>{const w=H.weekday(m,x.d);return `<div class="col ${w.weekend?'we':''} ${x.d===r.d?'on':''}" data-day="${x.d}"><div class="t"><i class="${x.empty?(x.late?'gap':'fut'):(x.diff<0?'neg':'')}" style="${x.empty?'':'height:'+Math.max(4,Math.abs(x.diff)/mx*92)+'px'}"></i></div><span>${x.d}</span></div>`}).join('')+`</div>`};
+const step=(dir)=>{const m=Dash.cur();if(!m)return;const L=dayList(m),i=L.findIndex(x=>x.d===sel)+dir;if(i>=0&&i<L.length){sel=L[i].d;Dash.redraw()}};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-step]');if(b)step(+b.dataset.step)});
 let tx=null;document.addEventListener('touchstart',e=>{if(e.target.closest('.det'))tx=e.touches[0].clientX},{passive:true});
 document.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>50)step(dx<0?1:-1)});
@@ -174,7 +183,7 @@ new MutationObserver(()=>{const s=document.getElementById('strip'),a=s&&s.queryS
 
 
 let dOpen=false,fresh=false;
-const secHTML=(m,H,c)=>{const r=pick(m),i=m.days.indexOf(r);return `<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=m.days.length-1?'disabled':''}>Позже →</button></div>`};
+const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);return `<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>`};
 const setOpen=v=>{dOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
@@ -186,7 +195,7 @@ const dBtn=(m,H)=>{const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0
   if(x&&x.hasFound)bars+=`<u class="${x.diff<0?'neg':''}${d===lastD?' cur':''}" style="height:${Math.max(4,Math.abs(x.diff)/mx*34)}px"></u>`;
   else bars+=`<u class="${d<=today?'gap':'fut'}"></u>`}
  return `<button class="dcard v1" data-toggle><div class="v1t"><span class="lb">По дням</span><i>→</i></div><div class="mini">${bars}</div></button>`};
-const daysBlock=(m,H,c)=>!m.days.length?'<div class="card"><div class="empty">Пока нет записей по дням</div></div>':`${dBtn(m,H)}${dOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-toggle>← Назад</button><b>${m.label}</b><span></span></div><div class="pgb">${secHTML(m,H,c)}</div></div>`:''}`;
+const daysBlock=(m,H,c)=>!dayList(m).length?'<div class="card"><div class="empty">Пока нет записей по дням</div></div>':`${dBtn(m,H)}${dOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-toggle>← Назад</button><b>${m.label}</b><span></span></div><div class="pgb">${secHTML(m,H,c)}</div></div>`:''}`;
 
 const MNG=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const plural=(n,a,b,c)=>{const x=n%100,y=n%10;return x>10&&x<20?c:y===1?a:y>1&&y<5?b:c};
