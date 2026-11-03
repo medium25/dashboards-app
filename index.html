@@ -187,7 +187,11 @@ body.lock{overflow:hidden}
 .cmpr .bdg{flex:0 0 48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:800;background:#ffffff12}
 .cmpr.g .bdg{background:#2bff8822;color:var(--g);box-shadow:0 0 0 1px #2bff8844,0 0 18px #2bff8833}.cmpr.r .bdg{background:#ff4d5e22;color:var(--r);box-shadow:0 0 0 1px #ff4d5e44}
 .cmpr .tx{flex:1;min-width:0}.cmpr .tx b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em}.cmpr.g .tx b{color:var(--g)}.cmpr.r .tx b{color:var(--r)}.cmpr .tx span{display:block;font-size:13px;color:var(--mute);margin-top:3px}
-.cmpr>i{font-style:normal;font-size:30px;color:var(--mute);line-height:1}</style></head><body><div class="wrap"><div id="app"></div></div>
+.cmpr>i{font-style:normal;font-size:30px;color:var(--mute);line-height:1}.cmpr.c3{padding:16px 16px 16px 20px}.cmpr.c3 .k{display:block;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 6px}
+.cmpr.c3 .big{display:block;font-size:clamp(28px,8.6vw,36px);font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+.cmpr.c3.g .big,.cmpr.c3.g .cap{color:var(--g)}.cmpr.c3.r .big,.cmpr.c3.r .cap{color:var(--r)}
+.cmpr.c3 .cap{display:block;font-size:clamp(17px,5vw,19px);font-weight:800;letter-spacing:-.01em;margin-top:7px;color:var(--tx)}
+.cmpr.c3 .bdg{flex:0 0 54px;height:54px}</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/seed.js"></script><script src="shared/fb-config.js"></script><script src="shared/core.js?v=9"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -314,7 +318,8 @@ const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyO
  const [y,mo]=m.key.split('-').map(Number),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),lim=m.days.length?m.days[m.days.length-1].d:0;
  const a=cumSeries(m,lim)[lim-1].v,b=cumSeries(pm,pdim)[Math.min(lim,pdim)-1].v,df=a-b,pc=b?Math.round(df/Math.abs(b)*100):null,cls=df===0?'mut':df>0?'g':'r',sg=df>0?'+':df<0?'−':'';
  if(!m.days.length)return `<button class="cmpr" data-cmp-toggle><span class="bdg">=</span><span class="tx"><b>Сравнение с ${INS[pm.label]||pm.label.toLowerCase()}</b><span>Внеси данные за ${m.label.toLowerCase()}, чтобы увидеть разницу</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`;
- return `<button class="cmpr ${cls}" data-cmp-toggle><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span><span class="tx"><b>${df===0?'Так же, как в '+(PRE[pm.label]||pm.label.toLowerCase()):sg+H.fmt(Math.abs(df))+" so'm"}</b><span>${df===0?'на '+lim+'-е число':(df>0?'больше':'меньше')+', чем в '+(PRE[pm.label]||pm.label.toLowerCase())+' на '+lim+'-е число'}</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
+ const _eq=df===0,_ah=df>0,_t=_eq?'Идём наравне с '+(INS[pm.label]||pm.label.toLowerCase()):(_ah?'Опережаем '+pm.label.toLowerCase():'Отстаём от '+pm.gen),_am=_eq?"0 so'm":sg+H.fmt(Math.abs(df))+" so'm",_d='на '+lim+' '+m.gen;
+ return `<button class="cmpr c3 ${cls}" data-cmp-toggle><span class="tx"><span class="k">${_d[0].toUpperCase()+_d.slice(1)}</span><b class="big">${_am}</b><span class="cap">${_t}</span></span><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
 document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
 
