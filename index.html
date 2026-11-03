@@ -157,13 +157,19 @@ body.lock{overflow:hidden}
 .col .t i.gap{height:4px;background:#ff4d5e;opacity:.85}.col .t i.fut{height:4px;background:#ffffff22;opacity:1}
 .nodata{margin:14px 2px 4px;padding:14px 16px;border-radius:14px;background:#ffffff08;color:var(--mute);font-size:15px;line-height:1.4}.nodata.late{background:#ff4d5e18;color:#ffb3bb}
 .editday.primary{background:linear-gradient(#ffffff,#b9c3d6);border-color:#fff;color:#0b0f17;min-height:54px;font-size:16px;font-weight:800;box-shadow:0 0 16px #ffffff55}.editday.primary:active{transform:scale(.98)}
-.det.emp .rw b{opacity:.45}</style></head><body><div class="wrap"><div id="app"></div></div>
+.det.emp .rw b{opacity:.45}
+.rw.ed{cursor:text}.ein{display:flex;align-items:baseline;gap:6px;flex:1;justify-content:flex-end;min-width:0}
+.ein input{width:100%;min-width:0;text-align:right;background:none;border:0;outline:0;font-weight:800;font-size:26px;font-family:inherit;letter-spacing:-.02em;font-variant-numeric:tabular-nums;border-bottom:2px solid transparent;padding:0 0 2px}
+.ein input::placeholder{color:#3b4a63}.ein input.b{color:var(--b)}.ein input.r{color:var(--r)}.ein input:focus{border-bottom-color:#ffffff55}.ein em{font-style:normal;font-size:12px;font-weight:600;color:var(--mute)}
+.det.edit .editday{margin-top:10px}.det.edit .editday.primary:disabled{opacity:.35;box-shadow:none}
+.gapnote{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:#ff4d5e18;color:#ffb3bb;font-size:14px;line-height:1.4}
+</style></head><body><div class="wrap"><div id="app"></div></div>
 <script src="shared/seed.js"></script><script src="shared/core.js?v=8"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
 let keepScroll=0;
 
-let sel=null,selMonth=null;
+let sel=null,selMonth=null,editing=false;
 const MN=['','янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 const dayList=m=>{const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),now=new Date(),nk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
  const today=m.key===nk?now.getDate():(m.key<nk?dim+1:0),by={};m.days.forEach(x=>{if(x.hasFound)by[x.d]=x});
@@ -171,11 +177,11 @@ const dayList=m=>{const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0)
  for(let d=1;d<=lim;d++)out.push(by[d]||{d,hasFound:false,found:0,spent:0,diff:0,empty:true,late:d<today});return out};
 const pick=m=>{const L=dayList(m);if(!L.length)return null;if(selMonth!==m.key){selMonth=m.key;const f=L.filter(x=>!x.empty);sel=(f.length?f[f.length-1]:L[L.length-1]).d}
  return L.find(x=>x.d===sel)||L[L.length-1]};
-document.addEventListener('click',e=>{const t=e.target.closest('[data-day]');if(!t)return;sel=+t.dataset.day;Dash.redraw();});
-const detail=(m,r,H,cur)=>{if(!r)return'';const w=H.weekday(m,r.d);return `<div class="card det ${w.weekend?'we':''}${r.empty?' emp':''}"><div class="dh"><div><div class="dd">${r.d} ${m.gen}</div><div class="dw">${w.full}</div></div></div><div class="rw"><span>Найдено</span><b class="b">${H.fmt(r.found)}</b></div><div class="rw"><span>Реклама</span><b class="r">${H.fmt(r.spent)}</b></div><div class="rw"><span>Прибыль</span><b class="${r.diff<0?'r':'g'}">${H.fmt(r.diff)}</b></div><button class="editday${r.empty?' primary':''}" data-entry-day="${r.d}" data-entry-key="${m.key}">${r.empty?'Добавить данные':'Изменить день'}</button></div>`};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-day]');if(!t)return;sel=+t.dataset.day;editing=false;Dash.redraw();});
+const detail=(m,r,H,cur)=>{if(!r)return'';const w=H.weekday(m,r.d);if(editing&&r.d===sel&&m.key===selMonth)return editCard(m,r,H,w);return `<div class="card det ${w.weekend?'we':''}${r.empty?' emp':''}"><div class="dh"><div><div class="dd">${r.d} ${m.gen}</div><div class="dw">${w.full}</div></div></div><div class="rw"><span>Найдено</span><b class="b">${H.fmt(r.found)}</b></div><div class="rw"><span>Реклама</span><b class="r">${H.fmt(r.spent)}</b></div><div class="rw"><span>Прибыль</span><b class="${r.diff<0?'r':'g'}">${H.fmt(r.diff)}</b></div><button class="editday${r.empty?' primary':''}" data-entry-day="${r.d}" data-entry-key="${m.key}">${r.empty?'Добавить данные':'Изменить день'}</button></div>`};
 
 const stripHTML=(m,H,r)=>{const mx=Math.max(1,...m.days.map(x=>Math.abs(x.diff)));return `<div class="strip" id="strip">`+dayList(m).map(x=>{const w=H.weekday(m,x.d);return `<div class="col ${w.weekend?'we':''} ${x.d===r.d?'on':''}" data-day="${x.d}"><div class="t"><i class="${x.empty?(x.late?'gap':'fut'):(x.diff<0?'neg':'')}" style="${x.empty?'':'height:'+Math.max(4,Math.abs(x.diff)/mx*92)+'px'}"></i></div><span>${x.d}</span></div>`}).join('')+`</div>`};
-const step=(dir)=>{const m=Dash.cur();if(!m)return;const L=dayList(m),i=L.findIndex(x=>x.d===sel)+dir;if(i>=0&&i<L.length){sel=L[i].d;Dash.redraw()}};
+const step=(dir)=>{const m=Dash.cur();if(!m)return;const L=dayList(m),i=L.findIndex(x=>x.d===sel)+dir;if(i>=0&&i<L.length){sel=L[i].d;editing=false;Dash.redraw()}};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-step]');if(b)step(+b.dataset.step)});
 let tx=null;document.addEventListener('touchstart',e=>{if(e.target.closest('.det'))tx=e.touches[0].clientX},{passive:true});
 document.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>50)step(dx<0?1:-1)});
@@ -183,8 +189,8 @@ new MutationObserver(()=>{const s=document.getElementById('strip'),a=s&&s.queryS
 
 
 let dOpen=false,fresh=false;
-const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);return `<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>`};
-const setOpen=v=>{dOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
+const secHTML=(m,H,c)=>{const L=dayList(m),r=pick(m),i=L.findIndex(x=>x.d===r.d);const GI=entryInfo(Dash.state);return `${m.key===GI.key&&GI.missing.length?`<div class="gapnote">Не заполнено: ${listDays(GI.missing,m)}. Пока есть пропуски, итоги неверные.</div>`:''}<div class="sec">Листай день за днём</div>${stripHTML(m,H,r)}${detail(m,r,H,c)}<div class="nav"><button data-step="-1" ${i<=0?'disabled':''}>← Раньше</button><button data-step="1" ${i>=L.length-1?'disabled':''}>Позже →</button></div>`};
+const setOpen=v=>{dOpen=v;if(!v)editing=false;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',dOpen&&true)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-toggle]')||e.target.matches('[data-close-bg]'))setOpen(!dOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dOpen)setOpen(false)});
 
@@ -222,6 +228,32 @@ const BR=(()=>{const K='brand:v1';let d={};try{d=JSON.parse(localStorage.getItem
 const brandName=s=>BR.get('name',s.project.name);
 if(BR.d.name)document.title=BR.d.name;
 const brandH=(s,H)=>`<h1 class="br"><span class="bn3" contenteditable="false" title="Двойное нажатие — изменить" spellcheck="false" autocapitalize="sentences" enterkeyhint="done" data-name>${H.esc(brandName(s))}</span></h1>`;
+
+const digs=s=>String(s).replace(/\D/g,''),grp=d=>d.replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const editCard=(m,r,H,w)=>`<div class="card det edit ${w.weekend?'we':''}"><div class="dh"><div><div class="dd">${r.d} ${m.gen}</div><div class="dw">${w.full}</div></div></div>
+<label class="rw ed"><span>Найдено</span><div class="ein"><input id="ef" class="b" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Найдено" value="${r.empty?'':grp(String(r.found))}"><em>so'm</em></div></label>
+<label class="rw ed"><span>Реклама</span><div class="ein"><input id="es" class="r" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Реклама" value="${r.empty||!r.spent?'':grp(String(r.spent))}"><em>so'm</em></div></label>
+<div class="rw"><span>Прибыль</span><b id="ep" class="${r.diff<0?'r':'g'}">${H.fmt(r.empty?0:r.diff)}</b></div>
+<button class="editday primary" id="esave" data-esave ${r.empty?'disabled':''}>Сохранить</button><button class="editday" data-ecancel>Отмена</button>${r.empty?'':'<button class="delday" data-edel>Очистить день</button>'}</div>`;
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2600)}
+const focusEd=()=>setTimeout(()=>{const f=document.getElementById('ef');if(f){f.focus();f.select&&f.select()}},140);
+const saveEdit=()=>{const f=digs(document.getElementById('ef').value);if(!f)return;const m=Dash.cur(),key=m.key,gen=m.gen,day=sel;
+ try{Dash.setDay(key,day,+f,+digs(document.getElementById('es').value)||0)}catch(e){toast('Не удалось сохранить');navigator.vibrate&&navigator.vibrate([60,40,60]);return}
+ navigator.vibrate&&navigator.vibrate(25);toast(day+' '+gen+' сохранено');
+ const I=entryInfo(Dash.state);if(key===I.key&&I.missing.length){sel=I.missing[0];editing=true}else editing=false;Dash.redraw();if(editing)focusEd()};
+const enterFlow=()=>{const I=entryInfo(Dash.state),day=I.missing.length?I.missing[0]:I.today,mi=Dash.state.months.findIndex(x=>x.key===I.key);
+ if(mi>=0)Dash.state.mi=mi;selMonth=I.key;sel=day;editing=true;if(dOpen)Dash.redraw();else setOpen(true);focusEd()};
+document.addEventListener('click',e=>{
+ if(e.target.closest('[data-esave]')){saveEdit();return}
+ if(e.target.closest('[data-ecancel]')){editing=false;Dash.redraw();return}
+ if(e.target.closest('[data-edel]')){const m=Dash.cur();Dash.clearDay(m.key,sel);toast('День очищен');editing=false;Dash.redraw();return}
+ const b=e.target.closest('[data-entry-day]');if(b){editing=true;Dash.redraw();focusEd();return}
+ if(e.target.closest('[data-entry]'))enterFlow()});
+document.addEventListener('input',e=>{const el=e.target;if(el.id!=='ef'&&el.id!=='es')return;const d=digs(el.value).replace(/^0+(?=\d)/,'');el.value=d?grp(d):'';
+ const f=+digs(document.getElementById('ef').value)||0,sp=+digs(document.getElementById('es').value)||0,ep=document.getElementById('ep');
+ ep.textContent=Dash.H.fmt(f-sp);ep.className=f-sp<0?'r':'g';document.getElementById('esave').disabled=!digs(document.getElementById('ef').value)});
+document.addEventListener('keydown',e=>{if(!editing)return;if(e.key==='Escape'){editing=false;Dash.redraw()}else if(e.key==='Enter'&&e.target.id==='ef'){e.preventDefault();document.getElementById('es').focus()}else if(e.key==='Enter'&&e.target.id==='es'){e.preventDefault();saveEdit()}});
+document.addEventListener('focusin',e=>{if(e.target.id==='ef'||e.target.id==='es')setTimeout(()=>e.target.scrollIntoView({block:'center',behavior:'smooth'}),260)});
 Dash.start((s,H)=>{
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
@@ -244,15 +276,6 @@ Dash.start((s,H)=>{
 // keep active month chip visible in the scroller after re-render
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
 </script>
-<div class="ov" id="ov"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ttl"><div class="grab"></div>
-<h2 id="ttl">Внести за день</h2><div class="sub" id="sub"></div>
-<div class="dchips" id="dchips"></div>
-<label class="f2" for="amt">Найдено</label>
-<label class="inp"><input id="amt" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Найдено"><span>so'm</span></label>
-<label class="f2" for="spt">Реклама</label>
-<label class="inp sp"><input id="spt" type="text" inputmode="numeric" autocomplete="off" placeholder="0" aria-label="Реклама"><span>so'm</span></label>
-<div class="msg" id="msg"></div>
-<button class="save" id="save" disabled>Сохранить</button><button class="cancel" id="cancel">Отмена</button><button class="delday" id="delday" hidden>Очистить день</button></div></div>
 <div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Резервная копия</h2>
 <p class="help">Данные хранятся только на этом устройстве. Сохрани копию, чтобы не потерять их или перенести на другой телефон.</p>
 <button class="done" id="kexp">Сохранить копию</button><button class="done alt" id="kimp">Загрузить из файла</button><input type="file" id="kfile" accept="application/json,.json" hidden>
@@ -261,39 +284,7 @@ new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.query
 <div class="toast" id="toast"></div>
 <script>
 (()=>{
-const $=id=>document.getElementById(id),D=()=>window.Dash,WD=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
-let target=null,tkey=null,busy=false;const done=new Set();
-const digits=s=>String(s).replace(/\D/g,''),group=d=>d.replace(/\B(?=(\d{3})+(?!\d))/g,' '),fmt=n=>D().H.fmt(n);
-const info=()=>{const I=entryInfo(D().state);I.missing=I.missing.filter(d=>!done.has(d));return I};
-function note(k,t){$('msg').className='msg '+(t?k:'');$('msg').textContent=t||''}
-function render(){const I=info(),key=tkey||I.key,m=(D().state.months||[]).find(x=>x.key===key),[y,mo]=key.split('-').map(Number);
- const isNow=key===I.key,mn=MNG[mo-1];
- let days=[];if(isNow){days=[...I.missing];if(!days.includes(I.today))days.push(I.today)}
- if(target!=null&&!days.includes(target)&&isNow)days.push(target);days.sort((a,b)=>a-b);
- $('dchips').innerHTML=isNow?days.map(d=>'<button data-d="'+d+'" class="'+(d===target?'on ':'')+(I.missing.includes(d)?'miss':'')+'">'+d+' '+mn.slice(0,3)+(d===I.today?' · сегодня':'')+'</button>').join(''):'';
- const dt=new Date(y,mo-1,target);$('sub').textContent=target+' '+mn+', '+WD[dt.getDay()];$('sub').className='sub'+([0,6].includes(dt.getDay())?' we':'');
- const row=m&&m.days.find(x=>x.d===target&&x.hasFound);
- $('amt').value=row?group(String(row.found)):'';$('spt').value=row&&row.spent?group(String(row.spent)):'';
- $('delday').hidden=!row;
- if(isNow&&I.missing.length)note('err','Не заполнено: '+listDays(I.missing,I.m)+'. Пока есть пропуски, итоги неверные.');else note('','');
- $('save').disabled=!digits($('amt').value)}
-function open(day,key){done.clear();const I=entryInfo(D().state);tkey=key||I.key;
- const mis=I.missing;target=day||((tkey===I.key&&mis.length)?mis[0]:I.today);if(key&&key!==I.key&&!day)target=1;
- render();$('ov').classList.add('open');setTimeout(()=>($('amt').value?$('spt'):$('amt')).focus(),80)}
-const close=()=>$('ov').classList.remove('open');
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2600)}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-entry-day]');if(b){open(+b.dataset.entryDay,b.dataset.entryKey);return}if(e.target.closest('[data-entry]'))open()});
-$('cancel').onclick=close;$('ov').onclick=e=>{if(e.target===$('ov'))close()};
-document.addEventListener('keydown',e=>{if(!$('ov').classList.contains('open'))return;if(e.key==='Escape')close();if(e.key==='Enter'){if(e.target===$('amt')){e.preventDefault();$('spt').focus()}else save()}});
-$('dchips').onclick=e=>{const b=e.target.closest('button');if(!b)return;target=+b.dataset.d;render();$('amt').focus()};
-const fmtIn=el=>{el.oninput=()=>{const d=digits(el.value).replace(/^0+(?=\d)/,'');el.value=d?group(d):'';$('save').disabled=!digits($('amt').value)}};fmtIn($('amt'));fmtIn($('spt'));
-function save(){if(busy||$('save').disabled)return;const I=info(),key=tkey||I.key;
- try{D().setDay(key,target,+digits($('amt').value),+digits($('spt').value)||0)}catch(e){note('err','Не удалось сохранить: '+e.message);navigator.vibrate&&navigator.vibrate([60,40,60]);return}
- navigator.vibrate&&navigator.vibrate(25);const mn=MNG[+key.split('-')[1]-1];toast(target+' '+mn+' сохранено');
- if(key===I.key){done.add(target);const left=info();if(left.missing.length){target=left.missing[0];render()}else close()}else close()}
-$('save').onclick=save;
-$('delday').onclick=()=>{const I=info();D().clearDay(tkey||I.key,target);toast('День очищен');close()};
-// ---- backup ----
+const $=id=>document.getElementById(id),D=()=>window.Dash;
 const kerr=t=>{$('kerr').textContent=t||'';$('kerr').classList.toggle('on',!!t)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-backup]')){kerr('');$('kov').classList.add('open')}});
 $('kclose').onclick=()=>$('kov').classList.remove('open');$('kov').onclick=e=>{if(e.target===$('kov'))$('kov').classList.remove('open')};
@@ -310,7 +301,7 @@ $('kfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)
 (()=>{const vv=window.visualViewport,root=document.documentElement;
  if(vv){const f=()=>root.style.setProperty('--kb',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px');vv.addEventListener('resize',f);vv.addEventListener('scroll',f);f()}
  let y0=null,pull=0;const el=document.createElement('div');el.id='ptr';document.body.appendChild(el);
- const blocked=()=>document.body.classList.contains('lock')||document.querySelector('.pg')||document.getElementById('ov').classList.contains('open');
+ const blocked=()=>document.body.classList.contains('lock')||document.querySelector('.pg');
  addEventListener('touchstart',e=>{y0=(scrollY<=0&&!blocked())?e.touches[0].clientY:null},{passive:true});
  addEventListener('touchmove',e=>{if(y0==null)return;pull=Math.max(0,e.touches[0].clientY-y0);el.style.transform='translate(-50%,'+(Math.min(pull,90)-60)+'px)';el.textContent=pull>80?'Отпусти — обновлю':'Потяни, чтобы обновить';el.style.opacity=Math.min(1,pull/60)},{passive:true});
  addEventListener('touchend',async()=>{if(y0==null)return;const go=pull>80;y0=null;pull=0;if(go){el.textContent='Обновляю…';el.style.transform='translate(-50%,16px)';await Dash.reload({silent:true});navigator.vibrate&&navigator.vibrate(15)}el.style.opacity=0;el.style.transform='translate(-50%,-60px)'});
