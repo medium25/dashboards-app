@@ -285,7 +285,7 @@ const smooth=pts=>{if(pts.length<2)return '';let d='M'+pts[0][0].toFixed(1)+','+
  d+=' C'+(p1[0]+(p2[0]-p0[0])*t).toFixed(1)+','+(p1[1]+(p2[1]-p0[1])*t).toFixed(1)+' '+(p2[0]-(p3[0]-p1[0])*t).toFixed(1)+','+(p2[1]-(p3[1]-p1[1])*t).toFixed(1)+' '+p2[0].toFixed(1)+','+p2[1].toFixed(1)}return d};
 const cumSeries=(mo,upto)=>{const by={};mo.days.forEach(x=>{if(x.hasFound)by[x.d]=x.diff});const out=[];let acc=0;for(let d=1;d<=upto;d++){acc+=by[d]||0;out.push({d,v:acc})}return out};
 const niceMax=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;return(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p};
-const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!m.days.length)return '';
+const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!dayList(m).length)return '';
  const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),N=Math.max(dim,pdim);
  const lim=dayList(m).length,A=cumSeries(m,lim),B=cumSeries(pm,pdim),sd=Math.min(sel||lim,lim)||lim;
  const all=[...A,...B].map(p=>p.v),lo=Math.min(0,...all),hi=niceMax(Math.max(...all,1)),span=(hi-lo)||1;
@@ -306,11 +306,13 @@ const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf
 <div class="cs"><div><span>${sd} ${m.gen} · ${m.label}</span><b>${H.fmt(a)}</b></div><div><span>${sd} ${m.gen} · ${pm.label}</span><b>${H.fmt(b)}</b></div></div>
 <div class="cs one"><div><span>Разница на ${sd} ${m.gen}</span><b class="${cls}">${sg}${H.fmt(Math.abs(df))}${pc==null?'':' · '+sg+Math.abs(pc)+'%'}</b></div></div></div>`};
 
+const INS={Январь:'январём',Февраль:'февралём',Март:'мартом',Апрель:'апрелем',Май:'маем',Июнь:'июнем',Июль:'июлем',Август:'августом',Сентябрь:'сентябрём',Октябрь:'октябрём',Ноябрь:'ноябрём',Декабрь:'декабрём'};
 const DAT={Январь:'январю',Февраль:'февралю',Март:'марту',Апрель:'апрелю',Май:'маю',Июнь:'июню',Июль:'июлю',Август:'августу',Сентябрь:'сентябрю',Октябрь:'октябрю',Ноябрь:'ноябрю',Декабрь:'декабрю'};
 const setCmp=v=>{cmpOpen=v;fresh=v;Dash.redraw();fresh=false;document.body.classList.toggle('lock',cmpOpen||dOpen)};
-const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!m.days.length)return '';
+const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!dayList(m).length)return '';
  const [y,mo]=m.key.split('-').map(Number),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),lim=dayList(m).length;
  const a=cumSeries(m,lim)[lim-1].v,b=cumSeries(pm,pdim)[Math.min(lim,pdim)-1].v,df=a-b,pc=b?Math.round(df/Math.abs(b)*100):null,cls=df===0?'mut':df>0?'g':'r',sg=df>0?'+':df<0?'−':'';
+ if(!m.days.length)return `<button class="cmpr" data-cmp-toggle><span class="bdg">=</span><span class="tx"><b>Сравнение с ${INS[pm.label]||pm.label.toLowerCase()}</b><span>Внеси данные за ${m.label.toLowerCase()}, чтобы увидеть разницу</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`;
  return `<button class="cmpr ${cls}" data-cmp-toggle><span class="bdg">${df>0?'↑':df<0?'↓':'='}</span><span class="tx"><b>${pc==null?'':sg+Math.abs(pc)+'% '}к ${DAT[pm.label]||pm.label.toLowerCase()}</b><span>${sg}${H.fmt(Math.abs(df))} · на ${lim}-е число</span></span><i>›</i></button>${cmpOpen?`<div class="pg ${fresh?'anim':''}"><div class="pgh"><button class="back" data-cmp-toggle>← Назад</button><b>Сравнение</b><span></span></div><div class="pgb">${cmpHTML(m,H)}</div></div>`:''}`};
 document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
