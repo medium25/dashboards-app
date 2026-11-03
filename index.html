@@ -142,8 +142,13 @@ body.lock{overflow:hidden}
 .bsh input.nm{width:100%;background:#ffffff08;border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:var(--tx);font-weight:800;font-size:22px;font-family:inherit;outline:0;letter-spacing:-.02em}.bsh input.nm:focus{border-color:var(--b);box-shadow:0 0 0 3px #3d8bff33}
 .bsh .done{width:100%;min-height:54px;margin-top:18px;border:0;border-radius:16px;background:var(--b);color:#fff;font-weight:800;font-size:17px;font-family:inherit;cursor:pointer}.bsh .done:active{transform:scale(.98)}
 .bsh .reset{width:100%;min-height:44px;margin-top:4px;border:0;background:none;color:var(--mute);font-weight:600;font-size:15px;font-family:inherit;cursor:pointer}
-.emb3{flex:0 0 46px;height:46px;border-radius:15px;border:1px solid #3a4a68;background:radial-gradient(circle at 30% 20%,#ffffff1c,#ffffff06);display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 0 22px #2bff8826,inset 0 1px 0 #ffffff1f;-webkit-tap-highlight-color:transparent;transition:transform .15s}.emb3:active{transform:rotate(-8deg) scale(.92)}.emb3 svg{width:26px;height:26px}.bn3{outline:0;min-width:40px;max-width:60vw;font-weight:800;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;border-bottom:2px solid transparent;padding-bottom:1px;caret-color:var(--g)}.bn3{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.bn3[contenteditable=plaintext-only]{-webkit-user-select:text;user-select:text}.bn3:focus{border-bottom-color:var(--g);text-overflow:clip}.top h1.br{cursor:default}</style></head><body><div class="wrap"><div id="app"></div></div>
-<script src="shared/core.js?v=6"></script><script>
+.emb3{flex:0 0 46px;height:46px;border-radius:15px;border:1px solid #3a4a68;background:radial-gradient(circle at 30% 20%,#ffffff1c,#ffffff06);display:grid;place-items:center;padding:0;cursor:pointer;box-shadow:0 0 22px #2bff8826,inset 0 1px 0 #ffffff1f;-webkit-tap-highlight-color:transparent;transition:transform .15s}.emb3:active{transform:rotate(-8deg) scale(.92)}.emb3 svg{width:26px;height:26px}.bn3{outline:0;min-width:40px;max-width:60vw;font-weight:800;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;border-bottom:2px solid transparent;padding-bottom:1px;caret-color:var(--g)}.bn3{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.bn3[contenteditable=plaintext-only]{-webkit-user-select:text;user-select:text}.bn3:focus{border-bottom-color:var(--g);text-overflow:clip}.top h1.br{cursor:default}
+.tab.addm{padding:0 16px;font-size:18px;font-weight:700;color:var(--b);border-style:dashed;border-color:#3d8bff77;background:transparent}
+.bsh input.nm.sm{font-size:17px;font-weight:600;letter-spacing:0;padding:13px 14px}
+.bsh .help{font-size:13px;line-height:1.45;color:var(--mute);margin:10px 2px 0}.bsh .err{display:none;margin-top:12px;font-size:13px;line-height:1.45;border-radius:12px;padding:10px 12px;background:#ff4d5e18;color:#ff9aa4}.bsh .err.on{display:block}
+.mlist{margin-top:14px}.mlist div{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:14px;background:#ffffff08;margin-top:6px;font-weight:600}.mlist button{border:0;background:#ff4d5e22;color:#ff9aa4;border-radius:10px;min-height:34px;padding:0 12px;font-weight:700;font-family:inherit;cursor:pointer}
+</style></head><body><div class="wrap"><div id="app"></div></div>
+<script src="shared/core.js?v=7"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
 let keepScroll=0;
@@ -200,7 +205,7 @@ const brandH=(s,H)=>`<h1 class="br"><span class="bn3" contenteditable="false" ti
 Dash.start((s,H)=>{
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
-    <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).reverse().join('')}</div></div>`;
+    <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).reverse().join('')}<button class="tab addm" data-addmonth aria-label="Добавить месяц">＋</button></div></div>`;
   if(s.status==='loading')return top+'<div class="status">Загрузка…</div>';
   if(s.status==='error')return top+`<div class="status err">Ошибка: ${H.esc(s.error)}<br><br><button class="tab on" data-refresh>Повторить</button></div>`;
   const m=s.month,x=m.summary,c=s.project.currency,t=totals(m);
@@ -228,6 +233,29 @@ new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.query
 <div class="msg" id="msg"></div>
 <button class="save" id="save" disabled>Сохранить</button><button class="cancel" id="cancel">Отмена</button></div></div>
 <div id="inst" role="note"><div class="ic2"></div><p><b>Установи как приложение.</b> Нажми <svg class="sh" viewBox="0 0 24 24" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/></svg> «Поделиться», затем <b>«На экран «Домой»»</b>.</p><button id="instx">Понятно</button></div>
+<div class="bov" id="mov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Добавить месяц</h2>
+<label class="f">Месяц</label><input class="nm sm" id="mm" type="month">
+<label class="f">Вкладка с итогами (DASH)</label><input class="nm sm" id="mdash" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="ссылка на вкладку или её номер">
+<label class="f">Вкладка по дням (INFO) — по желанию</label><input class="nm sm" id="minfo" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="ссылка на вкладку или её номер">
+<p class="help">В Google Таблице открой нужную вкладку и скопируй ссылку из адресной строки (в конце будет <b>#gid=число</b>). Вставь её сюда целиком.</p>
+<div class="err" id="merr"></div>
+<button class="done" id="madd">Добавить</button><div class="mlist" id="mlist"></div><button class="reset" id="mcancel">Закрыть</button></div></div>
+<script>
+(()=>{const $=id=>document.getElementById(id),D=()=>window.Dash;let busy=false;
+ const nextKey=()=>{const ms=D().state.months||[];const top=ms.length?ms[0].key:null;const n=new Date();let y=n.getFullYear(),m=n.getMonth()+1;if(top){const [ty,tm]=top.split('-').map(Number);if(ty*12+tm>=y*12+m){y=ty;m=tm+1;if(m>12){m=1;y++}}}return y+'-'+String(m).padStart(2,'0')};
+ const err=t=>{$('merr').textContent=t||'';$('merr').classList.toggle('on',!!t)};
+ function list(){const u=D().userMonths();$('mlist').innerHTML=u.length?'<label class="f" style="margin-top:6px">Добавлено вручную</label>'+u.map(x=>'<div><span>'+x.key+'</span><button data-rm="'+x.key+'">Убрать</button></div>').join(''):''}
+ function open(){err('');$('mm').value=nextKey();$('mdash').value='';$('minfo').value='';list();$('mov').classList.add('open')}
+ const close=()=>$('mov').classList.remove('open');
+ document.addEventListener('click',e=>{if(e.target.closest('[data-addmonth]'))open();const r=e.target.closest('[data-rm]');if(r){D().removeMonth(r.dataset.rm).then(list)}});
+ $('mov').onclick=e=>{if(e.target===$('mov'))close()};$('mcancel').onclick=close;
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ $('madd').onclick=async()=>{if(busy)return;busy=true;err('');$('madd').textContent='Проверяю…';
+  try{await D().addMonth($('mm').value,$('mdash').value,$('minfo').value);close();navigator.vibrate&&navigator.vibrate(20)}
+  catch(e){err(e.message);navigator.vibrate&&navigator.vibrate([60,40,60])}
+  busy=false;$('madd').textContent='Добавить'};
+})();
+</script>
 <div class="toast" id="toast"></div>
 <script>
 (()=>{

@@ -191,11 +191,27 @@
   const H = { weekday, fmt, som, short, pct, esc, dailyChart, cumulativeChart, monthsChart, spark, ring, config: CONFIG };
 
   function draw() { document.getElementById('app').innerHTML = renderFn({ ...state, project: CONFIG.projects[state.pi], month: cur() }, H); }
+  // ---- months added by hand on this device (stored in localStorage) ----
+  const RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const RUG = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const UM = 'months:v1:';
+  function userMonths(p) { try { return JSON.parse(localStorage.getItem(UM + p.id)) || []; } catch (e) { return []; } }
+  function saveUserMonths(p, list) { try { localStorage.setItem(UM + p.id, JSON.stringify(list)); } catch (e) {} }
+  function mkMonth(u) { const mo = +u.key.split('-')[1]; return { key: u.key, label: RU[mo - 1], gen: RUG[mo - 1], short: RU[mo - 1].slice(0, 3).toUpperCase(), dash: u.dash, info: u.info == null ? null : u.info, user: true }; }
+  function applyUser(p) {
+    if (!p.baseMonths) p.baseMonths = p.months.slice();
+    const have = new Set(p.baseMonths.map((m) => m.key));
+    const extra = userMonths(p).filter((u) => !have.has(u.key)).map(mkMonth);
+    p.months = [...p.baseMonths, ...extra].sort((a, b) => b.key.localeCompare(a.key));
+  }
+  const gidOf = (v) => { const s = String(v == null ? '' : v); const m = s.match(/gid=(\d+)/) || s.match(/^\s*(\d+)\s*$/); return m ? +m[1] : null; };
+
   const ck = () => 'dash:' + CONFIG.projects[state.pi].id;
   const cacheSave = (months) => { try { localStorage.setItem(ck(), JSON.stringify({ t: Date.now(), months }, (k, v) => (k === 'prev' ? undefined : v))); } catch (e) {} };
   const cacheLoad = () => { try { return JSON.parse(localStorage.getItem(ck())); } catch (e) { return null; } };
   // load({silent:true}) refreshes in the background without flashing the loader
   async function load(opts) {
+    applyUser(CONFIG.projects[state.pi]);
     const silent = opts && opts.silent === true && state.status === 'ready';
     if (!silent) { state.status = 'loading'; state.error = null; draw(); }
     state.loading = true;
@@ -228,5 +244,25 @@
     window.addEventListener('online', () => { if (state.offline) load({ silent: true }); });
     setInterval(() => { if (!document.hidden && stale(300) && !state.loading) load({ silent: true }); }, 60000);
   }
-  window.Dash = { start, H, redraw: draw, cur, reload: load, state };
+
+  async function addMonth(key, dashRaw, infoRaw) {
+    const p = CONFIG.projects[state.pi]; applyUser(p);
+    if (!/^\d{4}-\d{2}$/.test(key || '')) throw new Error('Выбери месяц');
+    const dash = gidOf(dashRaw);
+    if (dash == null) throw new Error('Не нашёл номер вкладки с итогами (DASH). Вставь ссылку на вкладку или её номер.');
+    const hasInfo = String(infoRaw || '').trim() !== '';
+    const info = hasInfo ? gidOf(infoRaw) : null;
+    if (hasInfo && info == null) throw new Error('Не нашёл номер вкладки по дням (INFO).');
+    if (p.months.some((m) => m.key === key)) throw new Error('Такой месяц уже есть.');
+    try {
+      const d = await fetchTab(p.sheetId, dash);
+      if (!(d[0] || []).join(' ').toUpperCase().includes('FOYDA')) throw new Error('Вкладка итогов не похожа на DASH (нет колонки SOF FOYDA).');
+      if (info != null) { const i = await fetchTab(p.sheetId, info); if (!(i[0] || []).join(' ').toUpperCase().includes('TOPILDI')) throw new Error('Вкладка по дням не похожа на INFO (нет колонки TOPILDI).'); }
+    } catch (e) { if (/Sheet HTTP/.test(e.message)) throw new Error('Не удалось открыть вкладку. Проверь номер и что таблица открыта по ссылке.'); throw e; }
+    const list = userMonths(p); list.push({ key, dash, info }); saveUserMonths(p, list);
+    await load({ silent: true });
+    const i = (state.months || []).findIndex((m) => m.key === key); if (i >= 0) { state.mi = i; draw(); }
+  }
+  function removeMonth(key) { const p = CONFIG.projects[state.pi]; saveUserMonths(p, userMonths(p).filter((u) => u.key !== key)); state.mi = 0; return load({ silent: true }); }
+  window.Dash = { start, H, redraw: draw, cur, reload: load, state, addMonth, removeMonth, userMonths: () => userMonths(CONFIG.projects[state.pi]) };
 })();
