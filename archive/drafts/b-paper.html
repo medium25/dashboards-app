@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Дашборд — Paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#1d1b16;--mute:#8a8272;--line:#e2dacb;--g:#2f7a4b;--b:#2b50b8;--r:#c43d2f}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:44px 24px 80px}
+header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:34px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+.kick{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+h1{font:800 clamp(34px,5vw,56px)/1 Fraunces,serif;letter-spacing:-.02em}
+.tabs{display:flex;gap:22px;flex-wrap:wrap}
+.tab{background:none;border:0;font:500 15px Inter;color:var(--mute);cursor:pointer;padding:6px 0;border-bottom:2px solid transparent}
+.tab:hover{color:var(--ink)}.tab.on{color:var(--ink);border-color:var(--ink)}
+.proj{display:flex;gap:14px;margin-top:10px}.proj .tab{font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.hero{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;border:1px solid var(--line);background:var(--card);margin-bottom:34px}
+.hero>div{padding:26px 26px 28px;border-right:1px solid var(--line)}.hero>div:last-child{border:0}
+.lab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:10px;display:flex;gap:8px;align-items:center}
+.big{font:600 clamp(24px,3.1vw,38px)/1 Fraunces,serif;letter-spacing:-.02em}
+.big small{font:500 14px Inter;color:var(--mute);margin-left:6px}
+.hero .p .big{font-weight:800;color:var(--g)}.hero .f .big{color:var(--b)}.hero .s .big{color:var(--r)}
+.tag{font:600 11px Inter;padding:2px 8px;border-radius:99px;background:#2f7a4b1a;color:var(--g)}.tag.neg{background:#c43d2f1a;color:var(--r)}
+.sec{display:grid;grid-template-columns:200px 1fr;gap:30px;padding:26px 0;border-top:1px solid var(--line)}
+.sec h2{font:600 22px Fraunces,serif;line-height:1.15}.sec p{color:var(--mute);font-size:13px;margin-top:6px}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mute);margin-bottom:8px}.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:2px}
+svg.chart{width:100%;height:auto;display:block}
+.grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}.zero{stroke:var(--ink);stroke-dasharray:none}.axis{fill:var(--mute);font:10px Inter}.axis.val{fill:var(--ink);font-weight:600}
+.c-found{fill:var(--b)}.c-spent{fill:var(--r)}.c-profit{fill:var(--g)}
+.c-profit-line{stroke:var(--ink);stroke-width:1.8}.c-profit-dot{fill:var(--card);stroke:var(--ink);stroke-width:1.5}.c-profit-area{fill:#2f7a4b22}
+.col .hit{fill:transparent}.col:hover .hit{fill:#00000009}
+.mbar{opacity:.35}.mbar.on{opacity:1}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}.facts b{font:600 26px Fraunces,serif;display:block}.facts span{font-size:12px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th{font:500 11px Inter;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);text-align:right;padding:8px 6px;border-bottom:2px solid var(--ink)}th:first-child,td:first-child{text-align:left}
+td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line)}td.p{color:var(--g);font-weight:600}td.n{color:var(--r);font-weight:600}
+.scroll{max-height:440px;overflow:auto}
+.status{color:var(--mute);padding:80px 0;text-align:center;font:italic 22px Fraunces}
+.foot{margin-top:26px;color:var(--mute);font-size:12px;display:flex;justify-content:space-between}.foot button{background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;font:inherit}
+@media(max-width:800px){.hero{grid-template-columns:1fr}.hero>div{border-right:0;border-bottom:1px solid var(--line)}.sec{grid-template-columns:1fr;gap:12px}.facts{grid-template-columns:1fr 1fr}}
+</style></head><body><div class="wrap"><div id="app"></div></div>
+<script src="shared/core.js"></script>
+<script>
+Dash.start((s,H)=>{
+  const {fmt,short,pct}=H;
+  const head=`<header><div><div class="kick">Финансовый отчёт</div><h1>${H.esc(s.project.name)}</h1>
+    ${H.config.projects.length>1?`<div class="proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}</div>
+    <div class="tabs">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).join('')}</div></header>`;
+  if(s.status==='loading')return head+'<div class="status">Читаю таблицу…</div>';
+  if(s.status==='error')return head+`<div class="status">Ошибка: ${H.esc(s.error)}<br><button class="tab" data-refresh>Повторить</button></div>`;
+  const m=s.month,x=m.summary,cur=s.project.currency,d=m.delta;
+  const tag=d==null?'':`<span class="tag ${d<0?'neg':''}">${d>=0?'+':'−'}${Math.abs(d*100).toFixed(0)}% к прошлому</span>`;
+  const rows=m.days.map(r=>`<tr><td>${r.d}</td><td>${fmt(r.found)}</td><td>${fmt(r.spent)}</td><td class="${r.diff<0?'n':'p'}">${fmt(r.diff)}</td></tr>`).join('');
+  return head+`
+  <div class="hero">
+   <div class="p"><div class="lab">Чистая прибыль ${tag}</div><div class="big">${fmt(x.profit)}<small>${cur}</small></div></div>
+   <div class="f"><div class="lab">Найдено</div><div class="big">${fmt(x.found)}<small>${cur}</small></div></div>
+   <div class="s"><div class="lab">Реклама</div><div class="big">${fmt(x.spent)}<small>${cur}</small></div></div>
+  </div>
+  <div class="sec"><div><h2>Динамика по дням</h2><p>Найдено и потрачено, линия — прибыль дня.</p></div>
+   <div>${m.days.length?`<div class="legend"><span><i style="background:var(--b)"></i>найдено</span><span><i style="background:var(--r)"></i>реклама</span><span><i style="background:var(--ink)"></i>прибыль</span></span></div>`+H.dailyChart(m.days):'<div class="status" style="padding:30px 0;font-size:17px">Для этого месяца есть только итоги</div>'}</div></div>
+  <div class="sec"><div><h2>Ключевые показатели</h2><p>Эффективность рекламы за месяц.</p></div>
+   <div class="facts"><div><b>×${m.roi.toFixed(2)}</b><span>ROI рекламы</span></div><div><b>${pct(m.adShare)}</b><span>доля рекламы в найденном</span></div>
+   ${m.days.length?`<div><b>${short(m.avgProfit)}</b><span>прибыль в день, в среднем</span></div><div><b>${m.best.d}-е</b><span>лучший день · ${short(m.best.diff)}</span></div>`:''}</div></div>
+  <div class="sec"><div><h2>Сравнение месяцев</h2><p>Чистая прибыль, выбранный месяц выделен.</p></div><div style="max-width:520px">${H.monthsChart(s.months,m.key)}</div></div>
+  ${m.days.length?`<div class="sec"><div><h2>Накопленная прибыль</h2><p>Нарастающим итогом.</p></div><div>${H.cumulativeChart(m.days)}</div></div>
+  <div class="sec"><div><h2>Журнал</h2><p>${m.activeDays} дней с данными.</p></div><div class="scroll"><table><thead><tr><th>День</th><th>Найдено</th><th>Реклама</th><th>Прибыль</th></tr></thead><tbody>${rows}</tbody></table></div></div>`:''}
+  <div class="foot"><span>Обновлено ${s.updated.toLocaleTimeString('ru-RU')} · данные из Google Sheets</span><button data-refresh>Обновить</button></div>`;
+});
+</script></body></html>

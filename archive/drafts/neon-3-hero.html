@@ -1,0 +1,38 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neon · Hero</title><link rel="stylesheet" href="shared/neon.css">
+<style>
+.top{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-bottom:14px}
+.hero{padding:30px 30px 34px}.hero .num{font-size:clamp(40px,6.4vw,76px)}
+.hero::after{content:'';position:absolute;right:-10%;bottom:-70%;width:70%;height:140%;background:radial-gradient(closest-side,#2bff8833,transparent);pointer-events:none}
+.side{display:grid;gap:14px}.side .card{padding:18px 22px}.side .num{font-size:clamp(24px,3vw,34px)}
+.split{display:flex;height:8px;border-radius:99px;overflow:hidden;margin-top:22px;background:#1b2433;max-width:420px}
+.split i{display:block;height:100%}.split .a{background:var(--r);box-shadow:0 0 12px var(--r)}.split .p{background:var(--g)}
+.lg{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--mute)}.lg b{color:var(--tx)}
+td.bar{position:relative;width:46%;text-align:left;padding:0 12px}
+.cell{position:relative;height:30px;display:flex;align-items:center}
+.cell .fill{position:absolute;left:0;top:5px;bottom:5px;border-radius:6px;background:linear-gradient(90deg,#3d8bff55,#3d8bff22)}
+.cell .fill.s{background:linear-gradient(90deg,#ff4d5e66,#ff4d5e22);}
+.cell span{position:relative;font-weight:700;padding-left:8px}
+.scroll{max-height:560px}
+@media(max-width:760px){.top{grid-template-columns:1fr}td.bar{width:auto}}
+</style></head><body><div class="wrap"><div id="app"></div></div>
+<script src="shared/core.js"></script><script>
+const head=(s,H,title)=>`<header><h1><i></i>${H.esc(s.project.name)}</h1>
+  ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
+  <div class="tabs">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).join('')}</div></header>`;
+const guard=(s,H,h)=>s.status==='loading'?h+'<div class="status">Загрузка…</div>':s.status==='error'?h+`<div class="status err">Ошибка: ${H.esc(s.error)}<br><br><button class="tab on" data-refresh>Повторить</button></div>`:null;
+const foot=s=>`<div class="foot"><span>Обновлено ${s.updated.toLocaleTimeString('ru-RU')} · Google Sheets</span><button data-refresh>↻ Обновить</button></div>`;
+const totals=m=>m.total&&m.total.found!=null?{found:m.total.found,spent:m.total.spent,diff:m.total.diff}:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
+const delta=(m)=>m.delta==null?'':`<span class="badge ${m.delta<0?'neg':''}">${m.delta>=0?'▲':'▼'} ${Math.abs(m.delta*100).toFixed(0)}%</span>`;
+Dash.start((s,H)=>{const h=head(s,H),g=guard(s,H,h);if(g)return g;
+ const m=s.month,x=m.summary,c=s.project.currency,t=totals(m),f=H.fmt;
+ const mx=Math.max(1,...m.days.map(r=>Math.max(r.found,r.spent)));
+ const rows=m.days.map(r=>`<tr><td>${r.d} ${m.gen}</td><td class="bar"><div class="cell"><div class="fill" style="width:${r.found/mx*100}%"></div><span class="b">${f(r.found)}</span></div></td><td class="bar"><div class="cell"><div class="fill s" style="width:${r.spent/mx*100}%"></div><span class="r">${f(r.spent)}</span></div></td><td class="${r.diff<0?'n':'p'}">${f(r.diff)}</td></tr>`).join('');
+ const sp=x.found?Math.round(x.spent/x.found*100):0;
+ return h+`<div class="top">
+  <div class="card hero"><h3>Чистая прибыль ${delta(m)}</h3><div class="num g glow-g">${f(x.profit)}<small>${c}</small></div>
+   <div class="split"><i class="p" style="width:${100-sp}%"></i><i class="a" style="width:${sp}%"></i></div>
+   <div class="lg"><span>прибыль <b>${100-sp}%</b></span><span>реклама <b>${sp}%</b></span></div></div>
+  <div class="side"><div class="card"><h3>Всего найдено</h3><div class="num b glow-b">${f(x.found)}<small>${c}</small></div></div>
+   <div class="card"><h3>Реклама</h3><div class="num r glow-r">${f(x.spent)}<small>${c}</small></div></div></div></div>
+  <div class="card" style="padding:14px 10px 8px">${m.days.length?`<div class="scroll"><table><thead><tr><th>День</th><th style="text-align:left">Найдено</th><th style="text-align:left">Потрачено</th><th>Разница</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td>Итого</td><td class="f" style="text-align:left;padding-left:20px">${f(t.found)}</td><td class="s" style="text-align:left;padding-left:20px">${f(t.spent)}</td><td class="p">${f(t.diff)}</td></tr></tfoot></table></div>`:'<div class="status">Для этого месяца есть только итоги</div>'}</div>`+foot(s);});
+</script></body></html>

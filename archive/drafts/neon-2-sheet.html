@@ -1,0 +1,32 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neon · Sheet</title><link rel="stylesheet" href="shared/neon.css">
+<style>
+.sheet{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--panel);margin-bottom:16px}
+.sheet table{font-size:15px}
+.sheet th{position:static;text-align:center;font-size:13px;letter-spacing:.04em;padding:16px 14px;text-transform:none;font-weight:800;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.sheet th:last-child,.sheet td:last-child{border-right:0}
+.sheet td{text-align:center;border-right:1px solid var(--line)}
+.sheet th.a{color:var(--tx);background:#161e2c}.sheet th.pg{color:var(--g);background:#0f2a1d}.sheet th.pb{color:var(--b);background:#101d38}.sheet th.pr{color:var(--r);background:#2c1118}
+.sheet .main td{padding:30px 14px;font-size:clamp(18px,2.6vw,30px);font-weight:800;letter-spacing:-.03em;border-bottom:0}
+.sheet .main td:first-child{text-align:center;color:var(--tx)}
+.sheet .main td.p{background:#2bff8810}
+.sheet td.d{text-align:center;color:var(--mute);font-weight:600}
+.sheet td{text-align:center}
+.sheet .grid th.a{background:#161e2c}
+.sheet .scroll{max-height:560px}
+.sheet .grid th.pg{background:#0f2a1d}
+</style></head><body><div class="wrap"><div id="app"></div></div>
+<script src="shared/core.js"></script><script>
+const head=(s,H,title)=>`<header><h1><i></i>${H.esc(s.project.name)}</h1>
+  ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
+  <div class="tabs">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).join('')}</div></header>`;
+const guard=(s,H,h)=>s.status==='loading'?h+'<div class="status">Загрузка…</div>':s.status==='error'?h+`<div class="status err">Ошибка: ${H.esc(s.error)}<br><br><button class="tab on" data-refresh>Повторить</button></div>`:null;
+const foot=s=>`<div class="foot"><span>Обновлено ${s.updated.toLocaleTimeString('ru-RU')} · Google Sheets</span><button data-refresh>↻ Обновить</button></div>`;
+const totals=m=>m.total&&m.total.found!=null?{found:m.total.found,spent:m.total.spent,diff:m.total.diff}:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
+const delta=(m)=>m.delta==null?'':`<span class="badge ${m.delta<0?'neg':''}">${m.delta>=0?'▲':'▼'} ${Math.abs(m.delta*100).toFixed(0)}%</span>`;
+Dash.start((s,H)=>{const h=head(s,H),g=guard(s,H,h);if(g)return g;
+ const m=s.month,x=m.summary,c=s.project.currency,t=totals(m),f=H.fmt;
+ const rows=m.days.map(r=>`<tr><td class="d">${r.d} ${m.gen}</td><td class="f">${f(r.found)}</td><td class="s">${f(r.spent)}</td><td class="${r.diff<0?'n':'p'}">${f(r.diff)}</td></tr>`).join('');
+ return h+`<div class="sheet"><table><thead><tr><th class="a">SANA</th><th class="pg">SOF FOYDA</th><th class="pb">UMUMIY TOPILGAN</th><th class="pr">REKLAMAGA ISHLATILGAN</th></tr></thead>
+  <tbody><tr class="main"><td>${m.label.toUpperCase()}</td><td class="p g glow-g">${f(x.profit)} ${c}</td><td class="b glow-b">${f(x.found)} ${c}</td><td class="r glow-r">${f(x.spent)} ${c}</td></tr></tbody></table></div>
+  <div class="sheet grid">${m.days.length?`<div class="scroll"><table><thead><tr><th class="a">SANA</th><th class="pb">TOPILDI</th><th class="pr">ISHLATILDI</th><th class="pg">FARQ</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td class="d">UMUMIY</td><td class="f">${f(t.found)}</td><td class="s">${f(t.spent)}</td><td class="p">${f(t.diff)}</td></tr></tfoot></table></div>`:'<div class="status">Для этого месяца есть только итоги</div>'}</div>`+foot(s);});
+</script></body></html>
