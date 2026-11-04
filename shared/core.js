@@ -8,9 +8,9 @@
    day value: [found, spent, ts] (ts = ms of the last edit; [null, 0, ts] = cleared day). Used to merge devices.
    profit = found - spent                                                                         */
 (function () {
-  const CONFIG = {
-    projects: [{ id: 'main', name: 'Учёт', currency: "so'm" }],
-  };
+  const CONFIG = { projects: [{ id: 'main', name: 'Учёт', currency: "so'm" }] };
+  const PK = 'projects:v1';
+  try { const c = JSON.parse(localStorage.getItem(PK)); if (Array.isArray(c) && c.length) CONFIG.projects = c; } catch (e) {}
   const RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   const RUG = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   const WD_FULL = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
@@ -29,7 +29,7 @@
     return st;
   }
   function saveStore(p, st) { mem[p.id] = st; try { localStorage.setItem(SK(p), JSON.stringify(st)); } catch (e) {} }
-  const curProject = () => CONFIG.projects[state.pi];
+  const curProject = () => CONFIG.projects[state.pi] || null;
 
   /* ---------- derive months ---------- */
   const nowKey = () => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0'); };
@@ -70,20 +70,21 @@
     // a month that only had a monthly summary starts its own daily log from this entry
     const ts = Date.now(), v = [Math.round(found), Math.round(spent), ts];
     m.days = m.days || {}; m.days[String(day)] = v; m.summary = null;
-    saveStore(p, st); emitPatch({ [key]: { days: { [String(day)]: v } } }); return load();
+    saveStore(p, st); emitPatch(p.id, { [key]: { days: { [String(day)]: v } } }); return load();
   }
   function clearDay(key, day) {
     const p = curProject(), st = loadStore(p);
     if (st[key] && st[key].days) {
       const v = [null, 0, Date.now()];                       // tombstone, so the deletion also reaches other devices
-      st[key].days[String(day)] = v; saveStore(p, st); emitPatch({ [key]: { days: { [String(day)]: v } } });
+      st[key].days[String(day)] = v; saveStore(p, st); emitPatch(p.id, { [key]: { days: { [String(day)]: v } } });
     }
     return load();
   }
-  function exportData() { const p = curProject(); return JSON.stringify({ app: 'dashboards', version: 1, exported: new Date().toISOString(), projects: { [p.id]: loadStore(p) } }, null, 1); }
+  function exportData() { const p = curProject(); if (!p) return '{}'; return JSON.stringify({ app: 'dashboards', version: 1, exported: new Date().toISOString(), projects: { [p.id]: loadStore(p) } }, null, 1); }
   function importData(text) {
     let j; try { j = JSON.parse(text); } catch (e) { throw new Error('Это не файл с копией данных.'); }
-    const p = curProject(), st = j && j.projects && j.projects[p.id];
+    const p = curProject(); if (!p) throw new Error('Нет открытого бизнеса.');
+    const st = j && j.projects && j.projects[p.id];
     if (!st || typeof st !== 'object') throw new Error('В файле нет данных для этого приложения.');
     const clean = {};
     for (const k of Object.keys(st)) {
@@ -102,11 +103,13 @@
 
   /* ---------- sync with the cloud (see shared/sync.js) ---------- */
   let syncPush = null;
-  function emitPatch(patch) { if (syncPush) { try { syncPush(patch); } catch (e) {} } }
+  function emitPatch(pid, patch) { if (syncPush) { try { syncPush(pid, patch); } catch (e) {} } }
   // Merge a remote copy into the local store, per day, newest edit wins.
   // Returns { changed, push } where push = entries that are newer locally (to upload).
-  function mergeRemote(remote) {
-    const p = curProject(), st = loadStore(p); let changed = false; const push = {};
+  function mergeRemote(remote, pid) {
+    const p = curProject();
+    if (!p || (pid && p.id !== pid)) return { changed: false, push: null };
+    const st = loadStore(p); let changed = false; const push = {};
     const put = (k, d, v) => { (push[k] = push[k] || { days: {} }).days[d] = v; };
     for (const k of Object.keys(remote || {})) {
       if (!/^\d{4}-\d{2}$/.test(k)) continue;
@@ -129,7 +132,7 @@
     return { changed, push: Object.keys(push).length ? push : null };
   }
   const setSyncPush = (fn) => { syncPush = fn; };
-  const allLocal = () => clone(loadStore(curProject()));
+  const allLocal = () => (curProject() ? clone(loadStore(curProject())) : {});
 
   /* ---------- formatting ---------- */
   const nf = new Intl.NumberFormat('ru-RU');
@@ -158,6 +161,7 @@
   function draw() { needsDraw = false; document.getElementById('app').innerHTML = renderFn({ ...state, project: curProject(), month: cur() }, H); }
   function load() {
     try {
+      if (!curProject()) { state.months = []; state.mi = 0; state.status = 'ready'; state.error = null; if (window.Dash && window.Dash.canRedraw && !window.Dash.canRedraw()) needsDraw = true; else draw(); return Promise.resolve('ready'); }
       const keep = cur() && cur().key;
       state.months = buildMonths(curProject());
       const i = keep ? state.months.findIndex((m) => m.key === keep) : -1;
@@ -167,6 +171,22 @@
     if (window.Dash && window.Dash.canRedraw && !window.Dash.canRedraw()) needsDraw = true; else draw();
     return Promise.resolve(state.status);
   }
+  // the businesses this account may see (admin: all, owner: assigned ones); keeps the open one when possible
+  const projectHooks = new Set();
+  function setProjects(list) {
+    const keep = curProject() && curProject().id;
+    CONFIG.projects = list.map((x) => ({ id: x.id, name: x.name || x.id, currency: "so'm" }));
+    try { localStorage.setItem(PK, JSON.stringify(CONFIG.projects)); } catch (e) {}
+    const i = CONFIG.projects.findIndex((p) => p.id === keep);
+    state.pi = i >= 0 ? i : 0; state.months = null; state.mi = 0;
+    load(); projectHooks.forEach((f) => { try { f(); } catch (e) {} });
+  }
+  function setProject(i) {
+    if (i === state.pi || !CONFIG.projects[i]) return;
+    state.pi = i; state.months = null; state.mi = 0; load();
+    projectHooks.forEach((f) => { try { f(); } catch (e) {} });
+  }
+  const onProject = (f) => { projectHooks.add(f); };
   function start(fn) {
     renderFn = fn;
     document.addEventListener('click', (e) => {
@@ -178,5 +198,5 @@
     let day = new Date().getDate();
     document.addEventListener('visibilitychange', () => { if (!document.hidden && new Date().getDate() !== day) { day = new Date().getDate(); state.mi = 0; load(); } });
   }
-  window.Dash = { start, H, redraw: draw, cur, reload: load, state, setDay, clearDay, exportData, importData, mergeRemote, setSyncPush, allLocal };
+  window.Dash = { start, H, redraw: draw, cur, reload: load, state, setDay, clearDay, exportData, importData, mergeRemote, setSyncPush, allLocal, setProjects, setProject, onProject, project: curProject };
 })();

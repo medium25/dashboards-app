@@ -208,7 +208,7 @@ body.lock{overflow:hidden}
 .rail:hover button span,.rail:focus-within button span,.rail.open button span{opacity:1;transform:none}
 .rail button:hover,.rail button:active{background:#ffffff12;color:var(--tx)}
 .rail .sp{flex:1}
-body{padding-left:calc(env(safe-area-inset-left) + 76px)}
+body.has-rail{padding-left:calc(env(safe-area-inset-left) + 76px)}.rail[hidden]{display:none}.rail button.on{background:#ffffff14;color:var(--tx)}.rail .lt{flex:none;width:24px;height:24px;border-radius:8px;background:#ffffff14;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;color:var(--tx)}.rail button.on .lt{background:var(--b);color:#fff}.rail hr{border:0;border-top:1px solid var(--line);margin:4px 8px}
 </style>
 </head><body><script>
 // Safety net: if the app fails to start (blank screen), show why and offer a reset instead of an empty page.
@@ -236,11 +236,9 @@ body{padding-left:calc(env(safe-area-inset-left) + 76px)}
 })();
 </script>
 <div class="wrap"><div id="app"><div class="status">Загрузка…</div></div></div>
-<nav class="rail" id="rail" aria-label="Меню"><button data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.97a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg><span>Настройки</span></button></nav>
-<script>(function(){var r=document.getElementById('rail');if(!r)return;var touch=function(){return window.matchMedia&&matchMedia('(hover:none)').matches};
-r.addEventListener('click',function(e){if(touch()&&!r.classList.contains('open')){e.stopPropagation();e.preventDefault();r.classList.add('open')}else r.classList.remove('open')},true);
-document.addEventListener('click',function(e){if(!r.contains(e.target))r.classList.remove('open')})})();</script>
-<script src="shared/seed.js"></script><script src="shared/fb-config.js"></script><script src="shared/core.js?v=9"></script><script>
+<nav class="rail" id="rail" aria-label="Меню" hidden></nav>
+<script>(function(){var r=document.getElementById("rail");var touch=function(){return window.matchMedia&&matchMedia("(hover:none)").matches};r.addEventListener("click",function(e){if(touch()&&!r.classList.contains("open")){e.stopPropagation();e.preventDefault();r.classList.add("open")}else r.classList.remove("open")},true);document.addEventListener("click",function(e){if(!r.contains(e.target))r.classList.remove("open")})})();</script>
+<script src="shared/seed.js"></script><script src="shared/fb-config.js"></script><script src="shared/core.js?v=10"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
 let keepScroll=0;
@@ -301,7 +299,7 @@ const _unused=s=>{const I=entryInfo(s);const T={err:['⚠ Не внесено: '
 
 const BR=(()=>{const K='brand:v1';let d={};try{d=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
  return{d,get(k,def){return d[k]!=null&&d[k]!==''?d[k]:def},set(p){Object.assign(d,p);try{localStorage.setItem(K,JSON.stringify(d))}catch(e){};document.title=d.name||'Учёт'}}})();
-const brandName=s=>BR.get('name',s.project.name);
+const brandName=s=>{const S=window.Sync&&Sync.state();return S&&S.role?s.project.name:BR.get('name',s.project.name)};
 if(BR.d.name)document.title=BR.d.name;
 const brandH=(s,H)=>`<h1 class="br"><span class="bn3" contenteditable="false" title="Двойное нажатие — изменить" spellcheck="false" autocapitalize="sentences" enterkeyhint="done" data-name>${H.esc(brandName(s))}</span></h1>`;
 
@@ -374,9 +372,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(fals
 const SYNC_TXT={noaccess:'Нет доступа — нужен администратор',noconfig:'Данные только на этом устройстве',off:'Данные только на этом устройстве',syncing:'Синхронизация…',ok:'☁ Данные в облаке',offline:'Нет сети — отправится позже',error:'Ошибка синхронизации'};
 const syncLabel=()=>SYNC_TXT[(window.Sync&&Sync.state().status)||'off']||'';
 Dash.canRedraw=()=>!editing;
+const isAdmin=()=>!!(window.Sync&&Sync.state().role==='admin');
+Dash.onProject(()=>{sel=null;selMonth=null;editing=false;cmpOpen=false;dOpen=false;document.body.classList.remove('lock')});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-project],[data-pj]');if(b)Dash.setProject(+(b.dataset.project??b.dataset.pj))});
 Dash.start((s,H)=>{
+  if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">Учёт</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':'Нет доступных бизнесов.'}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Синхронизация</button></div>`}
   const top=`<div class="top">${brandH(s,H)}
-    ${H.config.projects.length>1?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
+    ${H.config.projects.length>1&&!isAdmin()?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
     <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).reverse().join('')}</div></div>`;
   if(s.status==='loading')return top+'<div class="status">Загрузка…</div>';
   if(s.status==='error')return top+`<div class="status err">Ошибка: ${H.esc(s.error)}<br><br><button class="tab on" data-refresh>Повторить</button></div>`;
@@ -424,17 +426,23 @@ function renderSync(){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)r
  if(S.status==='off'||!S.email){box.dataset.mode='';box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="tel" inputmode="tel" autocomplete="username" placeholder="Номер телефона"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
  const RL={admin:'Администратор',owner:'Владелец'},msg=S.status==='noaccess'?'Нет доступа. Попроси администратора добавить твой номер.':S.status==='error'?ST.error+S.error:(ST[S.status]||'');
  const mode='in:'+S.uid+':'+S.role+':'+(S.status==='noaccess');
- if(box.dataset.mode===mode){const st=$('sstat');if(st)st.textContent=msg;const ml=$('mlist');if(ml)ml.innerHTML=membersHTML(S);return}
+ if(box.dataset.mode===mode){const st=$('sstat');if(st)st.textContent=msg;const ml=$('mlist');if(ml)ml.innerHTML=membersHTML(S);const bl=$('blist');if(bl)bl.innerHTML=bizHTML(S);const mp=$('mpages');if(mp)mp.innerHTML=pagesHTML(S,NP,'data-npage');return}
  box.dataset.mode=mode;
  box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(phoneOf(S.email))+'</b>'+(S.role?' · '+RL[S.role]:'')+'</p><p class="help" id="sstat">'+esc(msg)+'</p>'
- +(S.role==='admin'?'<label class="f" style="margin-top:14px">Пользователи</label><div id="mlist">'+membersHTML(S)+'</div><input class="nm sm" id="mnm" placeholder="Имя (необязательно)" style="margin-top:8px"><input class="nm sm" id="mph" type="tel" inputmode="tel" placeholder="Номер телефона" style="margin-top:8px"><input class="nm sm" id="mpw" type="text" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" style="margin-top:8px"><select class="nm sm" id="mrl" style="margin-top:8px"><option value="owner">Владелец — смотрит и вносит</option><option value="admin">Администратор — ещё и добавляет людей</option></select><div class="err" id="merr"></div><button class="done" id="madd">Добавить пользователя</button>':'')
+ +(S.role==='admin'?'<label class="f" style="margin-top:14px">Бизнесы</label><div id="blist">'+bizHTML(S)+'</div><input class="nm sm" id="bnm" placeholder="Название нового бизнеса" style="margin-top:8px"><button class="done alt" id="badd" style="margin-top:8px">Добавить бизнес</button>'
+ +'<label class="f" style="margin-top:18px">Пользователи</label><div id="mlist">'+membersHTML(S)+'</div><input class="nm sm" id="mnm" placeholder="Имя (необязательно)" style="margin-top:8px"><input class="nm sm" id="mph" type="tel" inputmode="tel" placeholder="Номер телефона" style="margin-top:8px"><input class="nm sm" id="mpw" type="text" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" style="margin-top:8px"><select class="nm sm" id="mrl" style="margin-top:8px"><option value="owner">Владелец — видит выбранные бизнесы</option><option value="admin">Администратор — видит всё и управляет</option></select><div class="help" style="margin:8px 0 0">Какие бизнесы покажем владельцу:</div><div id="mpages">'+pagesHTML(S,NP,'data-npage')+'</div><div class="err" id="merr"></div><button class="done" id="madd">Добавить пользователя</button>':'')
  +'<button class="done alt" id="sout" style="margin-top:8px">Выйти</button>'}
+const NP=new Set();
+function bizHTML(S){return (S.businesses||[]).map(b=>'<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)"><b>'+esc(b.name)+'</b></div>').join('')||'<p class="help">Загрузка…</p>'}
+function pagesHTML(S,set,attr,uid){const bs=S.businesses||[];return bs.length?bs.map(b=>'<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:14px"><input type="checkbox" '+attr+'="'+esc(b.id)+'"'+(uid?' data-uid="'+esc(uid)+'"':'')+(set.has(b.id)?' checked':'')+'> '+esc(b.name)+'</label>').join(''):''}
 const box0=()=>$('syncbox');
 function membersHTML(S){const RL={admin:'Администратор',owner:'Владелец'},ms=(S.members||[]).slice().sort((a,b)=>(a.role==='admin'?0:1)-(b.role==='admin'?0:1));
- return ms.length?ms.map(m=>'<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><b>'+esc(m.name||phoneOf(m.phone))+'</b><div class="help" style="margin:0">'+esc(phoneOf(m.phone))+(m.uid===S.uid?' · '+(RL[m.role]||esc(m.role))+' · это ты':'')+'</div></div>'+(m.uid===S.uid?'':'<select class="nm sm" data-mrole="'+esc(m.uid)+'" style="width:auto;margin:0;padding:6px 8px;font-size:14px"><option value="owner"'+(m.role==='owner'?' selected':'')+'>Владелец</option><option value="admin"'+(m.role==='admin'?' selected':'')+'>Администратор</option></select>')+(m.uid===S.uid?'':'<button class="done alt" data-mdel="'+esc(m.uid)+'" style="width:auto;padding:6px 12px;margin:0">Убрать</button>')+'</div>').join(''):'<p class="help">Загрузка…</p>'}
+ return ms.length?ms.map(m=>{const me=m.uid===S.uid;return '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:0"><b>'+esc(m.name||phoneOf(m.phone))+'</b><div class="help" style="margin:0">'+esc(phoneOf(m.phone))+(me?' · '+(RL[m.role]||esc(m.role))+' · это ты':'')+'</div></div>'+(me?'':'<select class="nm sm" data-mrole="'+esc(m.uid)+'" style="width:auto;margin:0;padding:6px 8px;font-size:14px"><option value="owner"'+(m.role==='owner'?' selected':'')+'>Владелец</option><option value="admin"'+(m.role==='admin'?' selected':'')+'>Администратор</option></select><button class="done alt" data-mdel="'+esc(m.uid)+'" style="width:auto;padding:6px 12px;margin:0">Убрать</button>')+'</div>'+(m.role==='owner'?'<div style="margin-top:4px">'+(pagesHTML(S,new Set(m.pages||[]),'data-mpage',m.uid)||'')+'</div>':'')+'</div>'}).join(''):'<p class="help">Загрузка…</p>'}
 const emailOf=p=>{const d=String(p).replace(/\D/g,'');return d.length>=7?d+'@phone.uchet.app':''};
 const phoneOf=e=>/@phone\.uchet\.app$/.test(e||'')?'+'+e.split('@')[0]:e;
-document.addEventListener('change',async e=>{const s=e.target.closest('[data-mrole]');if(!s)return;try{await Sync.setRole(s.dataset.mrole,s.value)}catch(err){alert('Не удалось: '+(err.code||err.message));renderSync()}});
+document.addEventListener('change',async e=>{const np=e.target.closest('[data-npage]');if(np){np.checked?NP.add(np.dataset.npage):NP.delete(np.dataset.npage);return}
+ const mp=e.target.closest('[data-mpage]');if(mp){const S=Sync.state(),m=(S.members||[]).find(x=>x.uid===mp.dataset.uid);if(!m)return;const set=new Set(m.pages||[]);mp.checked?set.add(mp.dataset.mpage):set.delete(mp.dataset.mpage);try{await Sync.setPages(m.uid,[...set])}catch(err){alert('Не удалось: '+(err.code||err.message));renderSync()}return}
+ const s=e.target.closest('[data-mrole]');if(!s)return;try{await Sync.setRole(s.dataset.mrole,s.value)}catch(err){alert('Не удалось: '+(err.code||err.message));renderSync()}});
 document.addEventListener('click',async e=>{
  const go=e.target.closest('#sgo,#sup');
  if(go){const up=go.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=t=>{er.textContent=t;er.classList.add('on')};
@@ -444,10 +452,14 @@ document.addEventListener('click',async e=>{
    x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}}
  if(e.target.closest('#madd')){const bt=e.target.closest('#madd'),er=$('merr'),em=emailOf($('mph').value),pw=$('mpw').value,bad=t=>{er.textContent=t;er.classList.add('on')};er.classList.remove('on');
   if(!em)return bad('Введи номер телефона');if(pw.length<6)return bad('Пароль от 6 знаков');
-  bt.textContent='Добавляю…';try{await Sync.addMember(em,pw,$('mrl').value,$('mnm').value.trim());$('mph').value=$('mpw').value=$('mnm').value=''}catch(err){const c=err.code||'';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message))}bt.textContent='Добавить пользователя'}
+  bt.textContent='Добавляю…';try{await Sync.addMember(em,pw,$('mrl').value,$('mnm').value.trim(),$('mrl').value==='owner'?[...NP]:[]);$('mph').value=$('mpw').value=$('mnm').value='';NP.clear();renderSync()}catch(err){const c=err.code||'';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message))}bt.textContent='Добавить пользователя'}
+ if(e.target.closest('#badd')){const bt=e.target.closest('#badd'),nm=$('bnm').value.trim();if(!nm){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(nm);$('bnm').value=''}catch(err){alert('Не удалось: '+(err.code||err.message))}bt.textContent='Добавить бизнес'}
  const del=e.target.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;del.textContent='…';try{await Sync.removeMember(del.dataset.mdel)}catch(err){alert('Не удалось: '+(err.code||err.message))}}
  if(e.target.closest('#sout')){box0().dataset.mode='';await Sync.signOut()}});
-window.addEventListener('load',()=>{renderSync();if(window.Sync)Sync.onChange(renderSync)});
+function renderRail(){const r=$('rail'),on=isAdmin();document.body.classList.toggle('has-rail',on);r.hidden=!on;if(!on){r.innerHTML='';return}
+ const ps=Dash.H.config.projects,cur=Dash.state.pi;
+ r.innerHTML=ps.map((p,i)=>'<button data-pj="'+i+'" class="'+(i===cur?'on':'')+'" aria-label="'+esc(p.name)+'"><i class="lt">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span>'+esc(p.name)+'</span></button>').join('')+'<div class="sp"></div><hr><button data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.97a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg><span>Настройки</span></button>'}
+window.addEventListener('load',()=>{renderSync();renderRail();if(window.Sync){let k='';Sync.onChange(()=>{renderSync();renderRail();const n=(Sync.state().role||'')+'|'+Sync.state().uid;if(n!==k){k=n;Dash.reload()}})}Dash.onProject(()=>{renderRail();renderSync()})});
 document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))renderSync()});
 
 })();
@@ -480,7 +492,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))rende
  document.addEventListener('contextmenu',e=>{if(e.target.closest('.lkg'))e.preventDefault()});})();
 </script><script>
 (()=>{
- const save=el=>{const v=el.textContent.replace(/\s+/g,' ').trim().slice(0,20);BR.set({name:v});Dash.redraw()};
+ const save=el=>{const v=el.textContent.replace(/\s+/g,' ').trim().slice(0,20),S=window.Sync&&Sync.state();if(S&&S.role==='admin'){const p=Dash.project();if(v&&p)Sync.renameBusiness(p.id,v).catch(()=>{});Dash.redraw();return}if(S&&S.role){Dash.redraw();return}BR.set({name:v});Dash.redraw()};
  document.addEventListener('keydown',e=>{if(e.target.matches&&e.target.matches('[data-name]')&&e.key==='Enter'){e.preventDefault();e.target.blur()}});
  document.addEventListener('focusout',e=>{if(e.target.matches&&e.target.matches('[data-name]'))save(e.target)});
  let lastT=0;const nameEl=e=>e.target.closest&&e.target.closest('[data-name]');

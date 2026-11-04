@@ -4,6 +4,9 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function isMember() { return signedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid)); }
     function isAdmin() { return isMember() && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'admin'; }
+    function me() { return get(/databases/$(database)/documents/members/$(request.auth.uid)).data; }
+    // administrators see every business, owners only the ones assigned to them
+    function canSee(bid) { return isAdmin() || (isMember() && me().role == 'owner' && ('pages' in me()) && bid in me().pages); }
     function noWorkspace() { return !exists(/databases/$(database)/documents/meta/workspace); }
 
     // the first account ever creates the workspace and becomes its administrator
@@ -18,9 +21,13 @@ service cloud.firestore {
       allow update: if isAdmin() && request.resource.data.role in ['admin', 'owner'];
       allow delete: if isAdmin() && request.auth.uid != uid;
     }
-    // the shared data: administrators and owners can view and enter
-    match /shared/{key} {
-      allow read, write: if isMember();
+    match /businesses/{bid} {
+      allow read: if canSee(bid);
+      allow write: if isAdmin();
+    }
+    // the data of one business: whoever can see it can view and enter
+    match /shared/{bid} {
+      allow read, write: if canSee(bid);
     }
   }
 }
