@@ -29,7 +29,7 @@ const ready = (async () => {
         set({ status: snap.metadata.fromCache && !navigator.onLine ? 'offline' : 'ok', error: null, at: Date.now() });
       }, (err) => set({ status: 'error', error: err.code || err.message }));
     });
-    impl = { signIn: (e, p) => Au.signInWithEmailAndPassword(auth, e, p), signOut: () => Au.signOut(auth) };
+    impl = { signIn: (e, p) => Au.signInWithEmailAndPassword(auth, e, p), signUp: (e, p) => Au.createUserWithEmailAndPassword(auth, e, p), signOut: () => Au.signOut(auth) };
   } catch (e) { set({ status: 'error', error: 'sdk: ' + (e.message || e) }); }
 })();
 window.Sync = {
@@ -37,6 +37,7 @@ window.Sync = {
   onChange: (f) => { listeners.add(f); return () => listeners.delete(f); },
   ready,
   async signIn(email, pass) { await ready; if (!impl) throw new Error('Облако не подключено'); return impl.signIn(email, pass); },
+  async signUp(email, pass) { await ready; if (!impl) throw new Error('Облако не подключено'); return impl.signUp(email, pass); },
   async signOut() { await ready; if (impl) return impl.signOut(); },
 };
 set({});

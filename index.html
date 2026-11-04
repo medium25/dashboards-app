@@ -406,11 +406,17 @@ const ST={ok:'Всё сохранено в облаке',syncing:'Синхрон
 function renderSync(){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)return;
  const lbl=document.getElementById('synlbl');if(lbl)lbl.textContent=syncLabel();
  if(S.status==='noconfig'){box.innerHTML='<p class="help">Облако ещё не подключено: в приложении нет настроек Firebase. Данные хранятся только на этом устройстве.</p>';return}
- if(S.status==='off'||!S.email){box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="email" inputmode="email" autocomplete="username" autocapitalize="off" placeholder="Почта"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button>'+(S.error?'':'');return}
- box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(S.email)+'</b></p><p class="help">'+esc(S.status==='error'?ST.error+S.error:(ST[S.status]||''))+'</p><button class="done alt" id="sout">Выйти</button>'}
+ if(S.status==='off'||!S.email){box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="tel" inputmode="tel" autocomplete="username" placeholder="Номер телефона"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
+ box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(phoneOf(S.email))+'</b></p><p class="help">'+esc(S.status==='error'?ST.error+S.error:(ST[S.status]||''))+'</p><button class="done alt" id="sout">Выйти</button>'}
+const emailOf=p=>{const d=String(p).replace(/\D/g,'');return d.length>=7?d+'@phone.uchet.app':''};
+const phoneOf=e=>/@phone\.uchet\.app$/.test(e||'')?'+'+e.split('@')[0]:e;
 document.addEventListener('click',async e=>{
- if(e.target.closest('#sgo')){const em=$('sem').value.trim(),pw=$('spw').value,er=$('serr');if(!em||!pw){er.textContent='Введи почту и пароль';er.classList.add('on');return}
-  e.target.closest('#sgo').textContent='Вхожу…';try{await Sync.signIn(em,pw)}catch(err){renderSync();const x=$('serr');x.textContent='Не удалось войти: '+(err.code||err.message);x.classList.add('on')}}
+ const go=e.target.closest('#sgo,#sup');
+ if(go){const up=go.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=t=>{er.textContent=t;er.classList.add('on')};
+  if(!em)return bad('Введи номер телефона');if(pw.length<6)return bad('Пароль от 6 знаков');
+  go.textContent=up?'Создаю…':'Вхожу…';
+  try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw))}catch(err){renderSync();const c=err.code||'',x=$('serr');
+   x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}}
  if(e.target.closest('#sout')){await Sync.signOut()}});
 window.addEventListener('load',()=>{renderSync();if(window.Sync)Sync.onChange(renderSync)});
 document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))renderSync()});
