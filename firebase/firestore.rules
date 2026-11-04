@@ -1,8 +1,26 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{uid}/appData/{key} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    function signedIn() { return request.auth != null; }
+    function isMember() { return signedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid)); }
+    function isAdmin() { return isMember() && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'admin'; }
+    function noWorkspace() { return !exists(/databases/$(database)/documents/meta/workspace); }
+
+    // the first account ever creates the workspace and becomes its administrator
+    match /meta/workspace {
+      allow read: if signedIn();
+      allow create: if signedIn() && noWorkspace() && request.resource.data.adminUid == request.auth.uid;
+    }
+    match /members/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if isAdmin() && request.resource.data.role in ['admin', 'owner'];
+      allow create: if signedIn() && request.auth.uid == uid && noWorkspace() && request.resource.data.role == 'admin';
+      allow update: if isAdmin() && request.resource.data.role in ['admin', 'owner'];
+      allow delete: if isAdmin() && request.auth.uid != uid;
+    }
+    // the shared data: administrators and owners can view and enter
+    match /shared/{key} {
+      allow read, write: if isMember();
     }
   }
 }

@@ -356,7 +356,7 @@ const cmpBlock=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyO
 document.addEventListener('click',e=>{if(e.target.closest('[data-cmp-toggle]'))setCmp(!cmpOpen)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cmpOpen)setCmp(false)});
 
-const SYNC_TXT={noconfig:'Данные только на этом устройстве',off:'Данные только на этом устройстве',syncing:'Синхронизация…',ok:'☁ Данные в облаке',offline:'Нет сети — отправится позже',error:'Ошибка синхронизации'};
+const SYNC_TXT={noaccess:'Нет доступа — нужен администратор',noconfig:'Данные только на этом устройстве',off:'Данные только на этом устройстве',syncing:'Синхронизация…',ok:'☁ Данные в облаке',offline:'Нет сети — отправится позже',error:'Ошибка синхронизации'};
 const syncLabel=()=>SYNC_TXT[(window.Sync&&Sync.state().status)||'off']||'';
 Dash.canRedraw=()=>!editing;
 Dash.start((s,H)=>{
@@ -406,8 +406,17 @@ const ST={ok:'Всё сохранено в облаке',syncing:'Синхрон
 function renderSync(){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)return;
  const lbl=document.getElementById('synlbl');if(lbl)lbl.textContent=syncLabel();
  if(S.status==='noconfig'){box.innerHTML='<p class="help">Облако ещё не подключено: в приложении нет настроек Firebase. Данные хранятся только на этом устройстве.</p>';return}
- if(S.status==='off'||!S.email){box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="tel" inputmode="tel" autocomplete="username" placeholder="Номер телефона"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
- box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(phoneOf(S.email))+'</b></p><p class="help">'+esc(S.status==='error'?ST.error+S.error:(ST[S.status]||''))+'</p><button class="done alt" id="sout">Выйти</button>'}
+ if(S.status==='off'||!S.email){box.dataset.mode='';box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="tel" inputmode="tel" autocomplete="username" placeholder="Номер телефона"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
+ const RL={admin:'Администратор',owner:'Владелец'},msg=S.status==='noaccess'?'Нет доступа. Попроси администратора добавить твой номер.':S.status==='error'?ST.error+S.error:(ST[S.status]||'');
+ const mode='in:'+S.uid+':'+S.role+':'+(S.status==='noaccess');
+ if(box.dataset.mode===mode){const st=$('sstat');if(st)st.textContent=msg;const ml=$('mlist');if(ml)ml.innerHTML=membersHTML(S);return}
+ box.dataset.mode=mode;
+ box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(phoneOf(S.email))+'</b>'+(S.role?' · '+RL[S.role]:'')+'</p><p class="help" id="sstat">'+esc(msg)+'</p>'
+ +(S.role==='admin'?'<label class="f" style="margin-top:14px">Пользователи</label><div id="mlist">'+membersHTML(S)+'</div><input class="nm sm" id="mnm" placeholder="Имя (необязательно)" style="margin-top:8px"><input class="nm sm" id="mph" type="tel" inputmode="tel" placeholder="Номер телефона" style="margin-top:8px"><input class="nm sm" id="mpw" type="text" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" style="margin-top:8px"><select class="nm sm" id="mrl" style="margin-top:8px"><option value="owner">Владелец — смотрит и вносит</option><option value="admin">Администратор — ещё и добавляет людей</option></select><div class="err" id="merr"></div><button class="done" id="madd">Добавить пользователя</button>':'')
+ +'<button class="done alt" id="sout" style="margin-top:8px">Выйти</button>'}
+const box0=()=>$('syncbox');
+function membersHTML(S){const RL={admin:'Администратор',owner:'Владелец'},ms=(S.members||[]).slice().sort((a,b)=>(a.role==='admin'?0:1)-(b.role==='admin'?0:1));
+ return ms.length?ms.map(m=>'<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><b>'+esc(m.name||phoneOf(m.phone))+'</b><div class="help" style="margin:0">'+esc(phoneOf(m.phone))+' · '+(RL[m.role]||esc(m.role))+(m.uid===S.uid?' · это ты':'')+'</div></div>'+(m.uid===S.uid?'':'<button class="done alt" data-mdel="'+esc(m.uid)+'" style="width:auto;padding:6px 12px;margin:0">Убрать</button>')+'</div>').join(''):'<p class="help">Загрузка…</p>'}
 const emailOf=p=>{const d=String(p).replace(/\D/g,'');return d.length>=7?d+'@phone.uchet.app':''};
 const phoneOf=e=>/@phone\.uchet\.app$/.test(e||'')?'+'+e.split('@')[0]:e;
 document.addEventListener('click',async e=>{
@@ -417,7 +426,11 @@ document.addEventListener('click',async e=>{
   go.textContent=up?'Создаю…':'Вхожу…';
   try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw))}catch(err){renderSync();const c=err.code||'',x=$('serr');
    x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}}
- if(e.target.closest('#sout')){await Sync.signOut()}});
+ if(e.target.closest('#madd')){const bt=e.target.closest('#madd'),er=$('merr'),em=emailOf($('mph').value),pw=$('mpw').value,bad=t=>{er.textContent=t;er.classList.add('on')};er.classList.remove('on');
+  if(!em)return bad('Введи номер телефона');if(pw.length<6)return bad('Пароль от 6 знаков');
+  bt.textContent='Добавляю…';try{await Sync.addMember(em,pw,$('mrl').value,$('mnm').value.trim());$('mph').value=$('mpw').value=$('mnm').value=''}catch(err){const c=err.code||'';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message))}bt.textContent='Добавить пользователя'}
+ const del=e.target.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;del.textContent='…';try{await Sync.removeMember(del.dataset.mdel)}catch(err){alert('Не удалось: '+(err.code||err.message))}}
+ if(e.target.closest('#sout')){box0().dataset.mode='';await Sync.signOut()}});
 window.addEventListener('load',()=>{renderSync();if(window.Sync)Sync.onChange(renderSync)});
 document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))renderSync()});
 
