@@ -63,6 +63,7 @@ const ready = (async () => {
       signUp: (e, p) => Au.createUserWithEmailAndPassword(auth, e, p),
       signOut: () => Au.signOut(auth),
       addMember, removeMember: (id) => Fs.deleteDoc(memberRef(id)),
+      setRole: (id, role) => Fs.updateDoc(memberRef(id), { role }),
     };
   } catch (e) { set({ status: 'error', error: 'sdk: ' + (e.message || e) }); }
 })();
@@ -73,6 +74,7 @@ window.Sync = {
   async signIn(email, pass) { await ready; if (!impl) throw new Error('Облако не подключено'); return impl.signIn(email, pass); },
   async signUp(email, pass) { await ready; if (!impl) throw new Error('Облако не подключено'); return impl.signUp(email, pass); },
   async addMember(email, pass, role, name) { await ready; return impl.addMember(email, pass, role, name); },
+  async setRole(id, role) { await ready; return impl.setRole(id, role); },
   async removeMember(id) { await ready; return impl.removeMember(id); },
   async signOut() { await ready; if (impl) return impl.signOut(); },
 };

@@ -199,7 +199,18 @@ body.lock{overflow:hidden}
 .cmpr.cc .go{font-style:normal;font-size:18px;line-height:1;opacity:.85;color:inherit}
 .cmpr.cc .amt{display:block;font-size:clamp(24px,7.4vw,30px);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-top:5px;font-variant-numeric:tabular-nums;color:inherit!important}
 .cmpr.cc .t3{display:block;font-size:12px;font-weight:700;opacity:.75;margin-top:4px;color:inherit}
-</style></head><body><script>
+</style><style>
+.rail{position:fixed;left:0;top:0;bottom:0;z-index:30;width:60px;padding:calc(env(safe-area-inset-top) + 14px) 8px 14px calc(env(safe-area-inset-left) + 8px);box-sizing:content-box;display:flex;flex-direction:column;gap:6px;background:#0a0f18f2;border-right:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow:hidden;transition:width .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s}
+.rail:hover,.rail:focus-within,.rail.open{width:196px;box-shadow:8px 0 40px #000a}
+.rail button{display:flex;align-items:center;gap:14px;width:100%;height:48px;padding:0 12px;border:0;border-radius:14px;background:none;color:var(--mute);font:600 15px/1 inherit;font-family:inherit;white-space:nowrap;cursor:pointer;text-align:left;transition:background .15s,color .15s}
+.rail button svg{flex:none;width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rail button span{opacity:0;transform:translateX(-6px);transition:opacity .18s,transform .22s}
+.rail:hover button span,.rail:focus-within button span,.rail.open button span{opacity:1;transform:none}
+.rail button:hover,.rail button:active{background:#ffffff12;color:var(--tx)}
+.rail .sp{flex:1}
+body{padding-left:calc(env(safe-area-inset-left) + 76px)}
+</style>
+</head><body><script>
 // Safety net: if the app fails to start (blank screen), show why and offer a reset instead of an empty page.
 (function(){
  var shown=false;
@@ -225,6 +236,10 @@ body.lock{overflow:hidden}
 })();
 </script>
 <div class="wrap"><div id="app"><div class="status">Загрузка…</div></div></div>
+<nav class="rail" id="rail" aria-label="Меню"><button data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.97a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg><span>Настройки</span></button></nav>
+<script>(function(){var r=document.getElementById('rail');if(!r)return;var touch=function(){return window.matchMedia&&matchMedia('(hover:none)').matches};
+r.addEventListener('click',function(e){if(touch()&&!r.classList.contains('open')){e.stopPropagation();e.preventDefault();r.classList.add('open')}else r.classList.remove('open')},true);
+document.addEventListener('click',function(e){if(!r.contains(e.target))r.classList.remove('open')})})();</script>
 <script src="shared/seed.js"></script><script src="shared/fb-config.js"></script><script src="shared/core.js?v=9"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
@@ -382,7 +397,7 @@ Dash.start((s,H)=>{
 // keep active month chip visible in the scroller after re-render
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
 </script>
-<div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Синхронизация и копия</h2><div id="syncbox"></div>
+<div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Настройки</h2><div id="syncbox"></div>
 <label class="f">Резервная копия</label><p class="help"> Сохрани копию, чтобы не потерять их или перенести на другой телефон.</p>
 <button class="done" id="kexp">Сохранить копию</button><button class="done alt" id="kimp">Загрузить из файла</button><input type="file" id="kfile" accept="application/json,.json" hidden>
 <div class="err" id="kerr"></div><button class="reset" id="kclose">Закрыть</button></div></div>
@@ -416,9 +431,10 @@ function renderSync(){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)r
  +'<button class="done alt" id="sout" style="margin-top:8px">Выйти</button>'}
 const box0=()=>$('syncbox');
 function membersHTML(S){const RL={admin:'Администратор',owner:'Владелец'},ms=(S.members||[]).slice().sort((a,b)=>(a.role==='admin'?0:1)-(b.role==='admin'?0:1));
- return ms.length?ms.map(m=>'<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><b>'+esc(m.name||phoneOf(m.phone))+'</b><div class="help" style="margin:0">'+esc(phoneOf(m.phone))+' · '+(RL[m.role]||esc(m.role))+(m.uid===S.uid?' · это ты':'')+'</div></div>'+(m.uid===S.uid?'':'<button class="done alt" data-mdel="'+esc(m.uid)+'" style="width:auto;padding:6px 12px;margin:0">Убрать</button>')+'</div>').join(''):'<p class="help">Загрузка…</p>'}
+ return ms.length?ms.map(m=>'<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div style="flex:1;min-width:0"><b>'+esc(m.name||phoneOf(m.phone))+'</b><div class="help" style="margin:0">'+esc(phoneOf(m.phone))+(m.uid===S.uid?' · '+(RL[m.role]||esc(m.role))+' · это ты':'')+'</div></div>'+(m.uid===S.uid?'':'<select class="nm sm" data-mrole="'+esc(m.uid)+'" style="width:auto;margin:0;padding:6px 8px;font-size:14px"><option value="owner"'+(m.role==='owner'?' selected':'')+'>Владелец</option><option value="admin"'+(m.role==='admin'?' selected':'')+'>Администратор</option></select>')+(m.uid===S.uid?'':'<button class="done alt" data-mdel="'+esc(m.uid)+'" style="width:auto;padding:6px 12px;margin:0">Убрать</button>')+'</div>').join(''):'<p class="help">Загрузка…</p>'}
 const emailOf=p=>{const d=String(p).replace(/\D/g,'');return d.length>=7?d+'@phone.uchet.app':''};
 const phoneOf=e=>/@phone\.uchet\.app$/.test(e||'')?'+'+e.split('@')[0]:e;
+document.addEventListener('change',async e=>{const s=e.target.closest('[data-mrole]');if(!s)return;try{await Sync.setRole(s.dataset.mrole,s.value)}catch(err){alert('Не удалось: '+(err.code||err.message));renderSync()}});
 document.addEventListener('click',async e=>{
  const go=e.target.closest('#sgo,#sup');
  if(go){const up=go.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=t=>{er.textContent=t;er.classList.add('on')};
