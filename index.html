@@ -540,10 +540,11 @@ function adminHTML(S){
   +(me?'<p class="snote">Это ваш аккаунт. Свой уровень изменить и себя убрать нельзя.</p>':sh('Уровень')+'<div class="sseg2"><button data-setrole="'+esc(m.uid)+':owner" class="'+(m.role==='owner'?'on':'')+'">Владелец</button><button data-setrole="'+esc(m.uid)+':admin" class="'+(m.role==='admin'?'on':'')+'">Администратор</button></div>')
   +(m.role==='owner'?sh('Видит бизнесы')+grp(bs.map(b=>'<div class="sr"><span class="st">'+esc(b.name)+'</span>'+swt('data-mpage',b.id,(m.pages||[]).includes(b.id),m.uid)+'</div>').join(''))||'':'<p class="snote">Администратор видит все бизнесы.</p>')
   +(me?'':'<button class="sbtn out" data-mdel="'+esc(m.uid)+'">Убрать пользователя</button>')}}
- if(pg&&pg.k==='b'){const b=bs.find(x=>x.id===pg.id);if(b){
+ if(pg&&pg.k==='b'){const b=bs.find(x=>x.id===pg.id);if(b){const tk=(S.invites||{})[b.id],link=tk?location.origin+location.pathname+'?join='+b.id+'.'+tk+'&n='+encodeURIComponent(b.name):'';
   return back(esc(b.name))+grp('<div class="sr"><span class="st">Название</span><input class="sin" data-bname="'+esc(b.id)+'" value="'+esc(b.name)+'"></div>')
   +sh('Кто видит этот бизнес')+(owners.length?grp(owners.map(o=>'<div class="sr"><span class="st">'+esc(nm(o))+'<small>'+esc(phoneOf(o.phone))+'</small></span>'+swt('data-mpage',b.id,(o.pages||[]).includes(b.id),o.uid)+'</div>').join('')):'<p class="snote">Пока нет владельцев. Добавь их во вкладке «Пользователи».</p>')
-  +'<p class="snote">Администраторы видят все бизнесы.</p>'}}
+  +'<p class="snote">Администраторы видят все бизнесы.</p>'
+  +sh('Ссылка для приглашения')+(link?grp('<div class="sr"><input class="sin l" id="invlink" readonly value="'+esc(link)+'"></div>')+'<div class="sseg2"><button data-copy>Скопировать</button><button data-share>Поделиться</button></div><p class="snote">Тот, кто откроет ссылку и создаст вход, получит доступ к этому бизнесу как владелец. «Сбросить» отключает старую ссылку и создаёт новую.</p><button class="sbtn out" data-reset-inv="'+esc(b.id)+'">Сбросить ссылку</button>':'<p class="snote">Создаём ссылку…</p>')}}
  if(pg&&pg.k==='nm'){const ow=SV.nrole==='owner';
   return back(ow?'Новый пользователь':'Новый администратор')+grp('<div class="sr"><input class="sin l" id="mnm" placeholder="Имя (необязательно)" value="'+esc(F.name||'')+'"></div><div class="sr"><input class="sin l" id="mph" data-phone type="tel" inputmode="tel" placeholder="+998 90 123 45 67" value="'+esc(F.phone||'+998 ')+'"></div><div class="sr"><input class="sin l" id="mpw" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" value="'+esc(F.pw||'')+'"></div>')
   +'<div class="sseg2"><button data-nrole="owner" class="'+(ow?'on':'')+'">Владелец</button><button data-nrole="admin" class="'+(ow?'':'on')+'">Администратор</button></div>'
@@ -565,8 +566,9 @@ function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return
  g.hidden=!show;document.body.classList.toggle('lock',show||document.body.classList.contains('lock')&&(cmpOpen||dOpen));
  if(!show)return;
  const form=st==='off',no=st==='noaccess';$('gform').hidden=!form;$('gno').hidden=!no;
- $('gsub').textContent=form?'Войдите, чтобы увидеть данные':no?'Нет доступа':'Загрузка…';
- if(no)$('gnotxt').textContent='Попроси администратора добавить твой номер, затем войди снова.'}
+ const jn=S&&S.join;
+ $('gsub').textContent=form?(jn?'Вас приглашают в бизнес'+(jn.name?' «'+jn.name+'»':'')+'. Создайте вход или войдите.':'Войдите, чтобы увидеть данные'):no?'Нет доступа':'Загрузка…';
+ if(no)$('gnotxt').textContent=S.joinError?'Ссылка недействительна или устарела. Попроси администратора прислать новую.':'Попроси администратора добавить твой номер, затем войди снова.'}
 setTimeout(()=>{if(window.Sync&&Sync.state().status==='checking'||!window.Sync){gateOff=true;renderGate()}},7000);
 $('gform').onsubmit=e=>e.preventDefault();
 function renderSync(force){const box=$('syncbox'),S=window.Sync&&Sync.state();renderGate();if(!S)return;
@@ -601,6 +603,12 @@ document.addEventListener('click',async e=>{const t=e.target;
   if(!em)return bad('Введи номер полностью: +998 XX XXX XX XX');if(pw.length<6)return bad('Пароль от 6 знаков');
   bt.textContent='Добавляю…';try{if(em===Sync.state().email)throw Object.assign(new Error('Это ваш собственный номер, вы уже в системе.'),{code:''});await Sync.addMember(em,pw,SV.nrole,$('mnm').value.trim(),SV.nrole==='owner'?[...NP]:[]);SV.tab=SV.nrole==='owner'?'usr':'adm';SV.form={};NP.clear();go(null,false)}catch(err){const c=err.code||'';bt.textContent='Добавить';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message)+(err.detail?' ('+err.detail+')':''))}return}
  if(t.closest('#badd')){const bt=t.closest('#badd'),v=$('bnm').value.trim();if(!v){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(v);SV.tab='biz';SV.form={};go(null,false)}catch(err){bt.textContent='Добавить бизнес';fail(err)}return}
+ const cp=t.closest('[data-copy],[data-share]');
+ if(cp){const el=$('invlink');if(!el)return;const url=el.value;
+  if(cp.hasAttribute('data-share')&&navigator.share){try{await navigator.share({title:'Приглашение в «Учёт»',url})}catch(x){}return}
+  try{await navigator.clipboard.writeText(url)}catch(x){el.select();document.execCommand('copy')}
+  const old=cp.textContent;cp.textContent='Скопировано ✓';setTimeout(()=>{cp.textContent=old},1500);return}
+ const ri=t.closest('[data-reset-inv]');if(ri){if(!confirm('Старая ссылка перестанет работать. Те, кто уже вошёл, останутся. Продолжить?'))return;try{await Sync.resetInvite(ri.dataset.resetInv)}catch(err){fail(err)}return}
  const del=t.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;try{await Sync.removeMember(del.dataset.mdel);go(null,false)}catch(err){fail(err)}return}
  if(t.closest('[data-gout]')){await Sync.signOut();return}
  if(t.closest('#sout')){box0().dataset.mode='';SV.page=null;await Sync.signOut()}});

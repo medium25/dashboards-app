@@ -7,6 +7,7 @@ service cloud.firestore {
     function me() { return get(/databases/$(database)/documents/members/$(request.auth.uid)).data; }
     // administrators see every business, owners only the ones assigned to them
     function canSee(bid) { return isAdmin() || (isMember() && me().role == 'owner' && ('pages' in me()) && bid in me().pages); }
+    function inviteOk(bid, tok) { return tok is string && exists(/databases/$(database)/documents/invites/$(bid)) && get(/databases/$(database)/documents/invites/$(bid)).data.token == tok; }
     function noWorkspace() { return !exists(/databases/$(database)/documents/meta/workspace); }
 
     // the first account ever creates the workspace and becomes its administrator
@@ -18,8 +19,23 @@ service cloud.firestore {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow create: if isAdmin() && request.resource.data.role in ['admin', 'owner'];
       allow create: if signedIn() && request.auth.uid == uid && noWorkspace() && request.resource.data.role == 'admin';
+      // joining through a business invite link: a new owner with exactly that business, or an owner adding one more
+      allow create: if signedIn() && request.auth.uid == uid && !noWorkspace()
+        && request.resource.data.keys().hasOnly(['role', 'phone', 'name', 'pages', 'joinBid', 'joinToken', 'createdAt'])
+        && request.resource.data.role == 'owner' && request.resource.data.phone == request.auth.token.email
+        && request.resource.data.pages.size() == 1 && request.resource.data.pages[0] == request.resource.data.joinBid
+        && inviteOk(request.resource.data.joinBid, request.resource.data.joinToken);
       allow update: if isAdmin() && request.resource.data.role in ['admin', 'owner'];
+      allow update: if signedIn() && request.auth.uid == uid && resource.data.role == 'owner' && request.resource.data.role == 'owner'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pages', 'joinBid', 'joinToken'])
+        && request.resource.data.joinBid in request.resource.data.pages
+        && request.resource.data.pages.hasAll(resource.data.pages)
+        && request.resource.data.pages.size() == resource.data.pages.size() + 1
+        && inviteOk(request.resource.data.joinBid, request.resource.data.joinToken);
       allow delete: if isAdmin() && request.auth.uid != uid;
+    }
+    match /invites/{bid} {
+      allow read, write: if isAdmin();
     }
     match /businesses/{bid} {
       allow read: if canSee(bid);

@@ -1,9 +1,23 @@
 // Cloud sync through Firebase (Auth + Firestore). Data lives in one shared document (shared/uchet) readable only by members; members/{uid} holds each person's role (admin | owner).
 // Local storage stays the source the UI reads; this module pushes every edit and merges remote changes (newest edit per day wins).
 const BASE = 'https://www.gstatic.com/firebasejs/10.12.5/';
-const S = { state: { status: window.FB_CONFIG ? 'checking' : 'noconfig', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null } };
+const S = { state: { status: window.FB_CONFIG ? 'checking' : 'noconfig', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null, join: null, invites: null, joinError: false } };
 const listeners = new Set();
 const set = (p) => { Object.assign(S.state, p); listeners.forEach((f) => { try { f(S.state); } catch (e) {} }); };
+// invite link: ?join=<businessId>.<token>&n=<name>. Kept until the person has signed in and joined.
+const JK = 'join:v1';
+const readJoin = () => { try { return JSON.parse(localStorage.getItem(JK)); } catch (e) { return null; } };
+const clearJoin = () => { try { localStorage.removeItem(JK); } catch (e) {} set({ join: null }); };
+try {
+  const q = new URLSearchParams(location.search), j = q.get('join');
+  if (j && /^[\w-]+\.[\w-]+$/.test(j)) {
+    const [bid, token] = j.split('.');
+    localStorage.setItem(JK, JSON.stringify({ bid, token, name: (q.get('n') || '').slice(0, 40) }));
+    q.delete('join'); q.delete('n');
+    history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+  }
+} catch (e) {}
+const pending0 = readJoin();
 let impl = null;
 const ready = (async () => {
   const cfg = window.FB_CONFIG;
@@ -12,6 +26,7 @@ const ready = (async () => {
     const [A, Au, Fs] = await Promise.all([import(BASE + 'firebase-app.js'), import(BASE + 'firebase-auth.js'), import(BASE + 'firebase-firestore.js')]);
     const app = A.initializeApp(cfg), auth = Au.getAuth(app), db = Fs.getFirestore(app);
     let uid = null, role = null, unsub = null, watched = null; const subs = [];
+    const newToken = () => { const a = new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a, (b) => (b % 36).toString(36)).join(''); };
     const dataRef = (pid) => Fs.doc(db, 'shared', pid);
     const memberRef = (id) => Fs.doc(db, 'members', id);
     const fail = (e) => set({ status: e.code === 'permission-denied' ? 'noaccess' : 'error', error: e.code || e.message });
@@ -38,14 +53,25 @@ const ready = (async () => {
     const showProjects = (list) => { set({ businesses: list }); window.Dash.setProjects(list); watch(); };
     Au.onAuthStateChanged(auth, async (u) => {
       stop(); uid = null; role = null;
-      if (!u) { set({ status: 'off', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null }); return; }
+      if (!u) { set({ status: 'off', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, joinError: false, invites: null }); return; }
       set({ status: 'syncing', email: u.email, role: null, members: null, businesses: null, pages: null, uid: u.uid, error: null });
       let first = false;
       try {
-        const m = await Fs.getDoc(memberRef(u.uid));
-        if (m.exists()) role = m.data().role;
-        else if ((await Fs.getDoc(Fs.doc(db, 'meta', 'workspace'))).exists()) { set({ status: 'noaccess' }); return; }
-        else {                                                 // first account ever becomes the administrator
+        const m = await Fs.getDoc(memberRef(u.uid)), pj = readJoin();
+        if (m.exists()) {
+          role = m.data().role;
+          if (pj && role === 'owner' && !(m.data().pages || []).includes(pj.bid)) {
+            try { await Fs.updateDoc(memberRef(u.uid), { pages: [...(m.data().pages || []), pj.bid], joinBid: pj.bid, joinToken: pj.token }); } catch (e) { set({ joinError: true }); }
+          }
+          if (pj) clearJoin();
+        } else if ((await Fs.getDoc(Fs.doc(db, 'meta', 'workspace'))).exists()) {
+          if (pj) {                                            // joined through a business invite link
+            try {
+              await Fs.setDoc(memberRef(u.uid), { role: 'owner', phone: u.email, name: '', pages: [pj.bid], joinBid: pj.bid, joinToken: pj.token, createdAt: Fs.serverTimestamp() });
+              role = 'owner'; clearJoin();
+            } catch (e) { clearJoin(); set({ status: 'noaccess', joinError: true }); return; }
+          } else { set({ status: 'noaccess' }); return; }
+        } else {                                                 // first account ever becomes the administrator
           const b = Fs.writeBatch(db), ts = Fs.serverTimestamp();
           b.set(Fs.doc(db, 'meta', 'workspace'), { adminUid: u.uid, created: ts });
           b.set(memberRef(u.uid), { role: 'admin', phone: u.email, name: 'Администратор', createdAt: ts });
@@ -56,8 +82,11 @@ const ready = (async () => {
       if (!auth.currentUser || auth.currentUser.uid !== u.uid) return;
       uid = u.uid; set({ role });
       if (role === 'admin') {
+        let bizIds = [], invs = {}, made = new Set();
+        const ensureInvites = () => bizIds.forEach((id) => { if (!invs[id] && !made.has(id)) { made.add(id); Fs.setDoc(Fs.doc(db, 'invites', id), { token: newToken() }).catch(() => made.delete(id)); } });
+        subs.push(Fs.onSnapshot(Fs.collection(db, 'invites'), (qs) => { invs = {}; qs.docs.forEach((d) => { invs[d.id] = d.data().token; }); set({ invites: { ...invs } }); ensureInvites(); }, () => {}));
         subs.push(Fs.onSnapshot(Fs.collection(db, 'members'), (qs) => set({ members: qs.docs.map((d) => ({ uid: d.id, ...d.data() })) }), () => {}));
-        subs.push(Fs.onSnapshot(Fs.collection(db, 'businesses'), (qs) => showProjects(qs.docs.map((d) => ({ id: d.id, name: d.data().name })).sort((x, y) => (x.id === 'main' ? -1 : y.id === 'main' ? 1 : x.name.localeCompare(y.name)))), fail));
+        subs.push(Fs.onSnapshot(Fs.collection(db, 'businesses'), (qs) => { bizIds = qs.docs.map((d) => d.id); ensureInvites(); showProjects(qs.docs.map((d) => ({ id: d.id, name: d.data().name })).sort((x, y) => (x.id === 'main' ? -1 : y.id === 'main' ? 1 : x.name.localeCompare(y.name)))); }, fail));
       } else {
         // an owner sees only the businesses the administrator assigned to them
         const names = {}; let ids = [];
@@ -99,10 +128,11 @@ const ready = (async () => {
       addBusiness: async (name) => { const id = 'b' + Date.now().toString(36); await Fs.setDoc(Fs.doc(db, 'businesses', id), { name, createdAt: Fs.serverTimestamp() }); return id; },
       removeBusiness: async (id) => {
         const b = Fs.writeBatch(db);
-        b.delete(Fs.doc(db, 'businesses', id)); b.delete(Fs.doc(db, 'shared', id));
+        b.delete(Fs.doc(db, 'businesses', id)); b.delete(Fs.doc(db, 'shared', id)); b.delete(Fs.doc(db, 'invites', id));
         (S.state.members || []).forEach((m) => { if ((m.pages || []).includes(id)) b.update(memberRef(m.uid), { pages: m.pages.filter((x) => x !== id) }); });
         await b.commit();
       },
+      resetInvite: (id) => Fs.setDoc(Fs.doc(db, 'invites', id), { token: newToken() }),
       renameBusiness: (id, name) => Fs.updateDoc(Fs.doc(db, 'businesses', id), { name }),
     };
   } catch (e) { set({ status: 'error', error: 'sdk: ' + (e.message || e) }); }
@@ -118,9 +148,10 @@ window.Sync = {
   async setPages(id, pages) { await ready; return impl.setPages(id, pages); },
   async addBusiness(name) { await ready; return impl.addBusiness(name); },
   async removeBusiness(id) { await ready; return impl.removeBusiness(id); },
+  async resetInvite(id) { await ready; return impl.resetInvite(id); },
   async renameBusiness(id, name) { await ready; return impl.renameBusiness(id, name); },
   async setRole(id, role) { await ready; return impl.setRole(id, role); },
   async removeMember(id) { await ready; return impl.removeMember(id); },
   async signOut() { await ready; if (impl) return impl.signOut(); },
 };
-set({});
+set({ join: pending0 ? { name: pending0.name } : null });
