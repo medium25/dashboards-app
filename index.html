@@ -254,6 +254,17 @@ body.sbv2 #rbtn{left:calc(env(safe-area-inset-left) + 22px);top:calc(env(safe-ar
 .rail .c0{background:linear-gradient(135deg,#ff8a5c,#ff3d71)}.rail .c1{background:linear-gradient(135deg,#ffc15a,#ff8a2a)}.rail .c2{background:linear-gradient(135deg,#34e0c8,#0ea5e9)}.rail .c3{background:linear-gradient(135deg,#b69cff,#6d5cff)}
 .rail .rw.on{background:linear-gradient(90deg,#ff3d7155,#6d5cff55)}.rail{background:#1c1622d9}
 .rail .vsw+.vsw{padding-top:4px}
+/* compact rows, no half-circle, per-project highlight */
+.rail .rw{min-height:38px;padding:0 8px;gap:10px;border-radius:11px}
+.rail .lt{width:24px;height:24px;border-radius:7px;font-size:12px}
+.rail .t{font-size:14px}
+.rail .more,.rail .rw:hover .more,.rail .more:hover{width:24px;height:24px;border-radius:6px;background:none;box-shadow:none;align-self:center;color:#ffffff90}.rail .more:hover{color:#fff}
+.rail .rw.k0.on{background:linear-gradient(90deg,#ff3d7166,#ff8a5c2e)}
+.rail .rw.k1.on{background:linear-gradient(90deg,#ff8a2a66,#ffc15a2e)}
+.rail .rw.k2.on{background:linear-gradient(90deg,#0ea5e966,#34e0c82e)}
+.rail .rw.k3.on{background:linear-gradient(90deg,#6d5cff77,#b69cff2e)}
+body.sbv2 .rail .rw{min-height:42px;padding:0 10px 0 8px;margin-bottom:4px}body.sbv2 .rail .lt{width:28px;height:28px;border-radius:8px;font-size:14px}body.sbv2 .rail .t{font-size:14px}
+body.sbv2 .rail .rw.k0.on{background:linear-gradient(90deg,#ff3d7166,#ff8a5c2e)}body.sbv2 .rail .rw.k1.on{background:linear-gradient(90deg,#ff8a2a66,#ffc15a2e)}body.sbv2 .rail .rw.k2.on{background:linear-gradient(90deg,#0ea5e966,#34e0c82e)}body.sbv2 .rail .rw.k3.on{background:linear-gradient(90deg,#6d5cff77,#b69cff2e)}
 #rmenu{position:fixed;z-index:60;min-width:190px;padding:6px;border-radius:14px;background:#252b38ee;backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid #ffffff1f;box-shadow:0 18px 50px #000b;display:none}
 #rmenu.on{display:block;animation:rpop .14s ease-out}@keyframes rpop{from{transform:scale(.94);opacity:0}}
 #rmenu button{display:block;width:100%;padding:9px 12px;border:0;border-radius:9px;background:none;color:var(--tx);font:15px inherit;font-family:inherit;text-align:left;cursor:pointer}#rmenu button:hover{background:var(--b)}
@@ -563,7 +574,7 @@ document.addEventListener('click',async e=>{const t=e.target;
 const plur=(n)=>n===0?'Нет владельцев':n+' '+(n%10===1&&n%100!==11?'владелец':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'владельца':'владельцев');
 function renderRail(){const r=$('rail'),on=isAdmin();if(on&&r.querySelector('.rin'))return;document.body.classList.toggle('has-rail',on);r.hidden=!on;$('rbtn').hidden=!on;if(!on){r.innerHTML='';closeRail();return}
  const ps=Dash.H.config.projects,cur=Dash.state.pi;
- r.innerHTML='<div class="sec">Бизнесы<button data-bnew title="Новый бизнес">＋</button></div>'+ps.map((p,i)=>'<div class="sw" data-i="'+i+'"><button class="rw '+(i===cur?'on':'')+'" data-pj="'+i+'" aria-label="'+esc(p.name)+'"><i class="lt c'+(i%4)+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span class="t">'+esc(p.name)+'</span><span class="more" data-more="'+i+'" title="Действия">⋯</span></button></div>').join('')
+ r.innerHTML='<div class="sec">Бизнесы<button data-bnew title="Новый бизнес">＋</button></div>'+ps.map((p,i)=>'<div class="sw" data-i="'+i+'"><button class="rw k'+(i%4)+' '+(i===cur?'on':'')+'" data-pj="'+i+'" aria-label="'+esc(p.name)+'"><i class="lt c'+(i%4)+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span class="t">'+esc(p.name)+'</span><span class="more" data-more="'+i+'" title="Действия">⋯</span></button></div>').join('')
  +'<div class="sp"></div><div class="foot"><button class="rw" data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span class="t">Настройки</span></button><div class="vsw">Вид панели: <button data-sbv="1" class="'+(SBV==='1'?'on':'')+'">1</button><button data-sbv="2" class="'+(SBV==='2'?'on':'')+'">2</button></div></div>'}
 let SBV='1';try{SBV=new URLSearchParams(location.search).get('sb')||localStorage.getItem('sbv')||'1';if(SBV!=='2')SBV='1';localStorage.setItem('sbv',SBV)}catch(e){}
 document.body.classList.add('sbv'+SBV);
