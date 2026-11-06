@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Боковая панель — 3 варианта</title>
+<style>
+:root{--tx:#f2f5fa;--mute:#8b96aa;--b:#4f8cff;--r:#ff5a5f;--o:#ff9f43;--g:#32d27a}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{background:#05070b;color:var(--tx);font:15px/1.3 -apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;padding:24px 16px 60px;-webkit-font-smoothing:antialiased}
+h1{font-size:15px;font-weight:600;color:var(--mute);text-align:center;margin-bottom:22px}
+.row{display:flex;flex-wrap:wrap;gap:28px;justify-content:center}
+.col{width:340px;max-width:100%}
+.lab{font-size:13px;font-weight:700;color:var(--mute);text-align:center;margin-bottom:10px;letter-spacing:.08em;text-transform:uppercase}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;text-align:left}
+/* app backdrop */
+.app{position:relative;height:640px;border-radius:26px;overflow:hidden;border:1px solid #ffffff1c;background:radial-gradient(500px 300px at 90% -10%,#12304a88,transparent),radial-gradient(400px 300px at 0% 20%,#0f3a2a77,transparent),#0a0e16;box-shadow:0 30px 80px #000c}
+.app .mock{position:absolute;inset:22px 18px 18px 120px;display:flex;flex-direction:column;gap:12px;opacity:.8;filter:blur(.3px)}
+.app .mock i{display:block;border-radius:18px;background:#ffffff0c;border:1px solid #ffffff10}
+.app .mock i:nth-child(1){height:34px;width:60%}.app .mock i:nth-child(2){height:110px;background:linear-gradient(120deg,#32d27a22,#ffffff08)}.app .mock i:nth-child(3){height:70px}.app .mock i:nth-child(4){height:70px}
+.menu{position:absolute;z-index:20;min-width:190px;padding:6px;border-radius:14px;background:#252b38e6;backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid #ffffff1f;box-shadow:0 18px 50px #000b;display:none}
+.menu.on{display:block;animation:pop .14s ease-out}@keyframes pop{from{transform:scale(.94);opacity:0}}
+.menu button{display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;padding:9px 12px;border-radius:9px;font-size:15px}
+.menu button:hover{background:var(--b)}.menu button.red{color:#ff6b70}.menu button.red:hover{background:var(--r);color:#fff}
+.menu hr{border:0;border-top:1px solid #ffffff1a;margin:5px 4px}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sq{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex:none}
+.c1{background:linear-gradient(135deg,#6ea2ff,#3b6df0)}.c2{background:linear-gradient(135deg,#34d399,#0f9d6c)}.c3{background:linear-gradient(135deg,#ffb35c,#f0701f)}.c4{background:linear-gradient(135deg,#c08bff,#7a45e8)}
+
+/* ===== V1 macOS sidebar ===== */
+.v1{position:absolute;left:0;top:0;bottom:0;width:236px;padding:14px 10px;background:#1b2130b8;backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border-right:1px solid #ffffff14;display:flex;flex-direction:column}
+.v1 .dots{display:flex;gap:8px;padding:2px 8px 16px}.v1 .dots i{width:12px;height:12px;border-radius:50%}
+.v1 .sec{font-size:11px;font-weight:600;color:#ffffff66;letter-spacing:.02em;padding:4px 10px;display:flex;justify-content:space-between;align-items:center}
+.v1 .sec button{color:var(--mute);font-size:18px;line-height:1}
+.v1 .it{display:flex;align-items:center;gap:9px;width:100%;padding:6px 8px;border-radius:8px;position:relative;font-size:14px}
+.v1 .it:hover{background:#ffffff10}.v1 .it.on{background:#4f8cff55}
+.v1 .it .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v1 .it .more{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;color:var(--mute);opacity:0;font-size:15px}
+.v1 .it:hover .more,.v1 .it.on .more{opacity:1}.v1 .it .more:hover{background:#ffffff1c;color:#fff}
+.v1 .sp{flex:1}.v1 .foot{border-top:1px solid #ffffff12;padding-top:8px}
+.v1 input.rn{flex:1;min-width:0;background:#0007;border:1px solid var(--b);border-radius:6px;color:#fff;font:inherit;font-size:14px;padding:2px 6px;outline:0}
+
+/* ===== V2 icon dock ===== */
+.v2{position:absolute;left:14px;top:50%;transform:translateY(-50%);padding:10px;border-radius:30px;background:#ffffff14;backdrop-filter:blur(36px) saturate(1.8);-webkit-backdrop-filter:blur(36px) saturate(1.8);border:1px solid #ffffff22;box-shadow:0 20px 60px #000a,inset 0 1px 0 #ffffff22;display:flex;flex-direction:column;gap:12px;align-items:center}
+.v2 .ic{position:relative;width:54px;height:54px;border-radius:15px;display:grid;place-items:center;font-weight:700;font-size:22px;color:#fff;transition:transform .2s cubic-bezier(.3,1.5,.5,1);box-shadow:0 4px 12px #0007,inset 0 1px 0 #ffffff55}
+.v2 .ic:hover{transform:scale(1.14)}.v2 .ic.on:after{content:"";position:absolute;left:-14px;top:50%;margin-top:-3px;width:5px;height:5px;border-radius:50%;background:#fff}
+.v2 .ic .tip{position:absolute;left:68px;top:50%;transform:translateY(-50%) translateX(-6px);padding:5px 11px;border-radius:9px;background:#232a38ee;border:1px solid #ffffff1c;font:500 13px -apple-system,sans-serif;white-space:nowrap;opacity:0;pointer-events:none;transition:all .15s}
+.v2 .ic:hover .tip{opacity:1;transform:translateY(-50%)}
+.v2 .add{width:54px;height:54px;border-radius:15px;border:1.5px dashed #ffffff40;display:grid;place-items:center;color:#ffffff90;font-size:24px}
+.v2 .gear{width:54px;height:54px;border-radius:15px;background:#ffffff12;display:grid;place-items:center;color:#c8d0df}
+.v2 hr{width:30px;border:0;border-top:1px solid #ffffff22}
+.v2 .hint{position:absolute;left:100px;bottom:-30px;font-size:12px;color:var(--mute);white-space:nowrap}
+
+/* ===== V3 floating glass + swipe actions ===== */
+.v3{position:absolute;left:12px;top:12px;bottom:12px;width:262px;border-radius:30px;background:#1a2030cc;backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border:1px solid #ffffff1f;box-shadow:0 24px 70px #000b,inset 0 1px 0 #ffffff1a;padding:18px 12px 12px;display:flex;flex-direction:column}
+.v3 h4{font-size:26px;font-weight:800;letter-spacing:-.03em;padding:0 8px 4px}
+.v3 .sub{font-size:13px;color:var(--mute);padding:0 8px 14px}
+.v3 .sw{position:relative;border-radius:18px;overflow:hidden;margin-bottom:6px}
+.v3 .acts{position:absolute;right:0;top:0;bottom:0;display:flex}
+.v3 .acts button{width:70px;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:600}
+.v3 .acts .e{background:var(--o)}.v3 .acts .d{background:var(--r)}
+.v3 .acts svg{display:block;margin:0 auto 3px}
+.v3 .rw{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;background:#243049;border-radius:18px;transition:transform .28s cubic-bezier(.3,.9,.3,1);z-index:1}
+.v3 .rw.on{background:#2f4f8f}
+.v3 .sw.open .rw{transform:translateX(-140px)}
+.v3 .rw .t{flex:1;font-weight:600}.v3 .rw small{display:block;font-weight:400;color:#ffffff80;font-size:12px}
+.v3 .rw .chev{color:#ffffff60;font-size:18px}
+.v3 .sw:hover .rw .chev{color:#fff}
+.v3 .new{display:flex;align-items:center;gap:10px;padding:12px;border-radius:18px;color:var(--b);font-weight:600;margin-top:4px}
+.v3 .sp{flex:1}.v3 .gearrow{display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;background:#ffffff0c;font-weight:600}
+.v3 .rn{flex:1;min-width:0;background:#0006;border:1px solid var(--b);border-radius:8px;color:#fff;font:inherit;font-weight:600;padding:4px 8px;outline:0}
+</style></head><body>
+<h1>Боковая панель · три варианта в духе Apple. Наводи, нажимай, жми «⋯» и правой кнопкой.</h1>
+<div class="row">
+
+<!-- V1 -->
+<div class="col"><div class="lab">1 · Как в macOS</div>
+<div class="app" id="a1"><div class="mock"><i></i><i></i><i></i><i></i></div>
+<div class="v1"><div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+<div class="sec">Бизнесы<button title="Новый бизнес">＋</button></div>
+<div id="l1"></div>
+<div class="sp"></div><div class="foot"><button class="it"><svg class="ico" viewBox="0 0 24 24" style="color:#9aa6bb"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span class="t">Настройки</span></button></div></div>
+<div class="menu" id="m1"><button data-a="ren">Переименовать</button><hr><button class="red" data-a="del">Удалить…</button></div></div></div>
+
+<!-- V2 -->
+<div class="col"><div class="lab">2 · Иконки как на iPhone</div>
+<div class="app" id="a2"><div class="mock"><i></i><i></i><i></i><i></i></div>
+<div class="v2" id="d2"></div>
+<div class="menu" id="m2"><button data-a="ren">Переименовать<svg class="ico" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg></button><hr><button class="red" data-a="del">Удалить бизнес<svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div></div>
+<div style="text-align:center;color:var(--mute);font-size:12px;margin-top:8px">нажми правой кнопкой или удерживай иконку</div></div>
+
+<!-- V3 -->
+<div class="col"><div class="lab">3 · Плавающая стеклянная панель</div>
+<div class="app" id="a3"><div class="mock" style="left:300px"><i></i><i></i><i></i><i></i></div>
+<div class="v3"><h4>Бизнесы</h4><div class="sub">Нажми на стрелку — появятся действия</div><div id="l3"></div>
+<button class="new"><span style="font-size:20px">＋</span> Новый бизнес</button>
+<div class="sp"></div><div class="gearrow"><svg class="ico" viewBox="0 0 24 24" style="color:#9aa6bb;width:20px;height:20px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Настройки</div></div></div></div>
+
+</div>
+<script>
+const D=[{n:'Учёт',c:'c1',s:'12 владельцев'},{n:'Магазин 2',c:'c2',s:'1 владелец'},{n:'Кафе',c:'c3',s:'2 владельца'}];let cur=0;
+const ini=n=>n.trim().charAt(0).toUpperCase();
+function rename(el,i,done){const inp=document.createElement('input');inp.className='rn';inp.value=D[i].n;el.replaceWith(inp);inp.focus();inp.select();let f=0;const fin=ok=>{if(f)return;f=1;if(ok&&inp.value.trim())D[i].n=inp.value.trim();all()};inp.onkeydown=e=>{if(e.key==='Enter')fin(1);if(e.key==='Escape')fin(0)};inp.onblur=()=>fin(1)}
+function del(i){if(confirm('Удалить «'+D[i].n+'» вместе со всеми данными?')){D.splice(i,1);cur=Math.max(0,Math.min(cur,D.length-1));all()}}
+let menu=null;function openMenu(m,x,y,i,host){closeMenu();menu={m,i};const r=host.getBoundingClientRect();m.style.left=Math.min(x-r.left,r.width-200)+'px';m.style.top=Math.min(y-r.top,r.height-100)+'px';m.classList.add('on')}
+function closeMenu(){document.querySelectorAll('.menu').forEach(m=>m.classList.remove('on'));menu=null}
+document.addEventListener('click',e=>{if(!e.target.closest('.menu'))closeMenu()});
+document.querySelectorAll('.menu button').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=menu.i,a=b.dataset.a,id=menu.m.id;closeMenu();if(a==='del')del(i);else{const t=document.querySelector(id==='m1'?'#l1 .it:nth-child('+(i+1)+') .t':'#d2 .ic:nth-child('+(i+1)+') .tip');if(id==='m1')rename(t,i);else{const n=prompt('Новое название',D[i].n);if(n&&n.trim()){D[i].n=n.trim();all()}}}});
+function r1(){const l=document.getElementById('l1');l.innerHTML=D.map((d,i)=>`<div class="it ${i===cur?'on':''}" data-i="${i}" role="button"><span class="sq ${d.c}">${ini(d.n)}</span><span class="t">${d.n}</span><button class="more" data-more="${i}">⋯</button></div>`).join('');
+ l.querySelectorAll('.it').forEach(el=>{const i=+el.dataset.i;el.onclick=e=>{if(e.target.closest('.more'))return;cur=i;all()};el.oncontextmenu=e=>{e.preventDefault();openMenu(document.getElementById('m1'),e.clientX,e.clientY,i,document.getElementById('a1'))};el.querySelector('.more').onclick=e=>{e.stopPropagation();openMenu(document.getElementById('m1'),e.clientX,e.clientY,i,document.getElementById('a1'))}})}
+function r2(){const d2=document.getElementById('d2');d2.innerHTML=D.map((d,i)=>`<button class="ic ${d.c} ${i===cur?'on':''}" data-i="${i}">${ini(d.n)}<span class="tip">${d.n}</span></button>`).join('')+'<button class="add">＋</button><hr><button class="gear"><svg class="ico" viewBox="0 0 24 24" style="width:24px;height:24px"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>';
+ d2.querySelectorAll('.ic').forEach(el=>{const i=+el.dataset.i;let t;el.onclick=()=>{cur=i;all()};el.oncontextmenu=e=>{e.preventDefault();openMenu(document.getElementById('m2'),e.clientX,e.clientY,i,document.getElementById('a2'))};el.onpointerdown=e=>{t=setTimeout(()=>openMenu(document.getElementById('m2'),e.clientX,e.clientY,i,document.getElementById('a2')),500)};['pointerup','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(t)))})}
+function r3(){const l=document.getElementById('l3');l.innerHTML=D.map((d,i)=>`<div class="sw" data-i="${i}"><div class="acts"><button class="e" data-e="${i}"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>Имя</button><button class="d" data-d="${i}"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Удалить</button></div><button class="rw ${i===cur?'on':''}" data-r="${i}"><span class="sq ${d.c}" style="width:34px;height:34px;border-radius:10px;font-size:16px">${ini(d.n)}</span><span class="t">${d.n}<small>${d.s}</small></span><span class="chev" data-c="${i}">‹</span></button></div>`).join('');
+ l.querySelectorAll('.rw').forEach(el=>{const i=+el.dataset.r;el.onclick=e=>{const sw=el.parentNode;if(e.target.closest('.chev')){const o=sw.classList.contains('open');l.querySelectorAll('.sw').forEach(x=>x.classList.remove('open'));if(!o)sw.classList.add('open');return}cur=i;all()}});
+ l.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const i=+b.dataset.e,t=b.closest('.sw').querySelector('.t');const n=prompt('Новое название',D[i].n);if(n&&n.trim()){D[i].n=n.trim();all()}});
+ l.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>del(+b.dataset.d))}
+function all(){r1();r2();r3()}all();
+</script></body></html>
