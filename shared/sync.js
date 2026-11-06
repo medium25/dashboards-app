@@ -1,7 +1,11 @@
 // Cloud sync through Firebase (Auth + Firestore). Data lives in one shared document (shared/uchet) readable only by members; members/{uid} holds each person's role (admin | owner).
 // Local storage stays the source the UI reads; this module pushes every edit and merges remote changes (newest edit per day wins).
 const BASE = 'https://www.gstatic.com/firebasejs/10.12.5/';
-const S = { state: { status: window.FB_CONFIG ? 'checking' : 'noconfig', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null, join: null, invites: null, joinError: false } };
+// Firebase takes a few seconds to load on a phone. Remember whether someone was signed in so the first screen
+// is right straight away: dashboard for a returning user, login form for a visitor.
+const AUTH_FLAG = 'auth:v1';
+const wasSignedIn = (() => { try { return localStorage.getItem(AUTH_FLAG) === '1'; } catch (e) { return false; } })();
+const S = { state: { status: !window.FB_CONFIG ? 'noconfig' : wasSignedIn ? 'syncing' : 'off', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null, join: null, invites: null, joinError: false } };
 const listeners = new Set();
 const set = (p) => { Object.assign(S.state, p); listeners.forEach((f) => { try { f(S.state); } catch (e) {} }); };
 // invite link: ?join=<businessId>.<token>&n=<name>. Kept until the person has signed in and joined.
@@ -53,6 +57,7 @@ const ready = (async () => {
     const showProjects = (list) => { set({ businesses: list }); window.Dash.setProjects(list); watch(); };
     Au.onAuthStateChanged(auth, async (u) => {
       stop(); uid = null; role = null;
+      try { u ? localStorage.setItem(AUTH_FLAG, '1') : localStorage.removeItem(AUTH_FLAG); } catch (e) {}
       if (!u) { set({ status: 'off', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, joinError: false, invites: null }); return; }
       set({ status: 'syncing', email: u.email, role: null, members: null, businesses: null, pages: null, uid: u.uid, error: null });
       let first = false;
