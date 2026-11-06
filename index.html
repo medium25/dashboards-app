@@ -437,8 +437,13 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const ST={ok:'Всё сохранено в облаке',syncing:'Синхронизация…',offline:'Нет сети — данные отправятся при подключении',error:'Ошибка: '};
 const SV={tab:'usr',page:null,fwd:true,nrole:'owner',form:{}};
 const NP=new Set(),RL={admin:'Администратор',owner:'Владелец'};
-const emailOf=p=>{const d=String(p).replace(/\D/g,'');return d.length>=7?d+'@phone.uchet.app':''};
-const phoneOf=e=>/@phone\.uchet\.app$/.test(e||'')?'+'+e.split('@')[0]:e;
+const restOf=v=>{let d=String(v).replace(/\D/g,'');if(d.startsWith('998'))d=d.slice(3);return d.slice(0,9)};
+const fmtPhone=v=>{const r=restOf(v),g=[r.slice(0,2),r.slice(2,5),r.slice(5,7),r.slice(7,9)].filter(Boolean);return '+998 '+g.join(' ')};
+const emailOf=p=>{const r=restOf(p);return r.length===9?'998'+r+'@phone.uchet.app':''};
+const legacyEmail=p=>{const r=restOf(p);return r.length===9?r+'@phone.uchet.app':''};
+const phoneOf=e=>{if(!/@phone\.uchet\.app$/.test(e||''))return e;const d=e.split('@')[0];return d.length===12&&d.startsWith('998')?fmtPhone(d):'+'+d};
+document.addEventListener('input',e=>{const t=e.target;if(t.matches&&t.matches('[data-phone]')){t.value=fmtPhone(t.value);if(t.id==='mph')SV.form.phone=t.value}});
+document.addEventListener('focusin',e=>{const t=e.target;if(t.matches&&t.matches('[data-phone]')&&!t.value)t.value='+998 '});
 const nm=m=>m.name||phoneOf(m.phone);
 const swt=(attr,val,on,uid)=>'<label class="sw"><input type="checkbox" '+attr+'="'+esc(val)+'"'+(uid?' data-uid="'+esc(uid)+'"':'')+(on?' checked':'')+'><i></i></label>';
 const nav=(to,main,sub,val)=>'<button class="sr" data-nav="'+esc(to)+'"><span class="st">'+main+(sub?'<small>'+sub+'</small>':'')+'</span>'+(val?'<span class="sv">'+val+'</span>':'')+'<span class="sch">›</span></button>';
@@ -458,7 +463,7 @@ function adminHTML(S){
   +sh('Кто видит этот бизнес')+(owners.length?grp(owners.map(o=>'<div class="sr"><span class="st">'+esc(nm(o))+'<small>'+esc(phoneOf(o.phone))+'</small></span>'+swt('data-mpage',b.id,(o.pages||[]).includes(b.id),o.uid)+'</div>').join('')):'<p class="snote">Пока нет владельцев. Добавь их во вкладке «Пользователи».</p>')
   +'<p class="snote">Администраторы видят все бизнесы.</p>'}}
  if(pg&&pg.k==='nm'){const ow=SV.nrole==='owner';
-  return back(ow?'Новый пользователь':'Новый администратор')+grp('<div class="sr"><input class="sin l" id="mnm" placeholder="Имя (необязательно)" value="'+esc(F.name||'')+'"></div><div class="sr"><input class="sin l" id="mph" type="tel" inputmode="tel" placeholder="Номер телефона" value="'+esc(F.phone||'')+'"></div><div class="sr"><input class="sin l" id="mpw" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" value="'+esc(F.pw||'')+'"></div>')
+  return back(ow?'Новый пользователь':'Новый администратор')+grp('<div class="sr"><input class="sin l" id="mnm" placeholder="Имя (необязательно)" value="'+esc(F.name||'')+'"></div><div class="sr"><input class="sin l" id="mph" data-phone type="tel" inputmode="tel" placeholder="+998 90 123 45 67" value="'+esc(F.phone||'+998 ')+'"></div><div class="sr"><input class="sin l" id="mpw" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" value="'+esc(F.pw||'')+'"></div>')
   +'<div class="sseg2"><button data-nrole="owner" class="'+(ow?'on':'')+'">Владелец</button><button data-nrole="admin" class="'+(ow?'':'on')+'">Администратор</button></div>'
   +(ow?sh('Какие бизнесы показать')+grp(bs.map(b=>'<div class="sr"><span class="st">'+esc(b.name)+'</span>'+swt('data-npage',b.id,NP.has(b.id))+'</div>').join('')):'<p class="snote">Администратор видит все бизнесы и управляет пользователями.</p>')
   +'<div class="err" id="merr"></div><button class="sbtn" id="madd">Добавить</button>'}
@@ -475,7 +480,7 @@ function adminHTML(S){
 function renderSync(force){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)return;
  const lbl=document.getElementById('synlbl');if(lbl)lbl.textContent=syncLabel();
  if(S.status==='noconfig'){box.innerHTML='<p class="help">Облако ещё не подключено: в приложении нет настроек Firebase. Данные хранятся только на этом устройстве.</p>';return}
- if(S.status==='off'||!S.email){box.dataset.mode='';box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="tel" inputmode="tel" autocomplete="username" placeholder="Номер телефона"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
+ if(S.status==='off'||!S.email){box.dataset.mode='';box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" data-phone type="tel" inputmode="tel" autocomplete="username" placeholder="+998 90 123 45 67" value="+998 "><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
  box.dataset.mode='in';
  if(S.role==='admin'){const ae=document.activeElement;if(!force&&ae&&box.contains(ae)&&ae.matches('input'))return;
   box.innerHTML='<div class="spage '+(SV.fwd?'pf':'pb')+'">'+adminHTML(S)+'</div>';return}
@@ -491,9 +496,9 @@ document.addEventListener('change',async e=>{const t=e.target;
 document.addEventListener('click',async e=>{const t=e.target;
  const g=t.closest('#sgo,#sup');
  if(g){const up=g.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=x=>{er.textContent=x;er.classList.add('on')};
-  if(!em)return bad('Введи номер телефона');if(pw.length<6)return bad('Пароль от 6 знаков');
+  if(!em)return bad('Введи номер полностью: +998 XX XXX XX XX');if(pw.length<6)return bad('Пароль от 6 знаков');
   g.textContent=up?'Создаю…':'Вхожу…';
-  try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw))}catch(err){renderSync();const c=err.code||'',x=$('serr');
+  try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw).catch(async err=>{const c=err.code||'',lg=legacyEmail($('sem').value);if(lg&&(c==='auth/invalid-credential'||c==='auth/user-not-found'||c==='auth/wrong-password'))return Sync.signIn(lg,pw);throw err}))}catch(err){renderSync();const c=err.code||'',x=$('serr');
    x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}return}
  const tb=t.closest('[data-tab]');if(tb){SV.tab=tb.dataset.tab;SV.page=null;SV.fwd=true;renderSync(true);return}
  const nv=t.closest('[data-nav]');if(nv){const [k,id]=nv.dataset.nav.split(':');if(k==='nm'){SV.nrole=id;SV.form={};NP.clear()}if(k==='nb')SV.form={};go({k,id},true);return}
@@ -501,7 +506,7 @@ document.addEventListener('click',async e=>{const t=e.target;
  const sr=t.closest('[data-setrole]');if(sr){const [u,r]=sr.dataset.setrole.split(':');try{await Sync.setRole(u,r)}catch(err){fail(err)}return}
  const nr=t.closest('[data-nrole]');if(nr){SV.nrole=nr.dataset.nrole;SV.fwd=true;renderSync(true);return}
  if(t.closest('#madd')){const bt=t.closest('#madd'),er=$('merr'),em=emailOf($('mph').value),pw=$('mpw').value,bad=x=>{er.textContent=x;er.classList.add('on')};er.classList.remove('on');
-  if(!em)return bad('Введи номер телефона');if(pw.length<6)return bad('Пароль от 6 знаков');
+  if(!em)return bad('Введи номер полностью: +998 XX XXX XX XX');if(pw.length<6)return bad('Пароль от 6 знаков');
   bt.textContent='Добавляю…';try{await Sync.addMember(em,pw,SV.nrole,$('mnm').value.trim(),SV.nrole==='owner'?[...NP]:[]);SV.tab=SV.nrole==='owner'?'usr':'adm';SV.form={};NP.clear();go(null,false)}catch(err){const c=err.code||'';bt.textContent='Добавить';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message))}return}
  if(t.closest('#badd')){const bt=t.closest('#badd'),v=$('bnm').value.trim();if(!v){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(v);SV.tab='biz';SV.form={};go(null,false)}catch(err){bt.textContent='Добавить бизнес';fail(err)}return}
  const del=t.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;try{await Sync.removeMember(del.dataset.mdel);go(null,false)}catch(err){fail(err)}return}
