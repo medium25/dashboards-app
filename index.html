@@ -570,10 +570,10 @@ function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return
  g.hidden=!show;document.body.classList.toggle('lock',show||document.body.classList.contains('lock')&&(cmpOpen||dOpen));
  if(!show)return;
  const form=st==='off',no=st==='noaccess';$('gform').hidden=!form;$('gno').hidden=!no;
- const jn=S&&S.join,nm0=(jn&&jn.name)||'Учёт';
+ const jn=S&&S.join,cp=Dash.H.config.projects[0]||{},nm0=jn?(jn.name||'Учёт'):(cp.name||'Учёт');
  g.classList.toggle('join',!!jn);$('gtitle').textContent=nm0;$('glogo').textContent=nm0.trim().charAt(0).toUpperCase()||'У';
- $('glogo').style.background='linear-gradient(135deg,'+GRAD[jn&&jn.bid?hue(jn.bid):0]+')';
- if(jn&&jn.name)document.title=nm0;
+ $('glogo').style.background='linear-gradient(135deg,'+GRAD[jn&&jn.bid?hue(jn.bid):(cp.id?hue(cp.id):0)]+')';
+ if(jn?jn.name:cp.name)document.title=nm0;
  $('gsub').textContent=no?'Нет доступа':'';$('gsub').hidden=!no;
  if(no)$('gnotxt').textContent=S.joinError?'Ссылка недействительна или устарела. Попроси администратора прислать новую.':'Попроси администратора добавить твой номер, затем войди снова.'}
 setTimeout(()=>{if(window.Sync&&Sync.state().status==='checking'||!window.Sync){gateOff=true;renderGate()}},7000);
