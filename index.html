@@ -271,6 +271,18 @@ body.sbv2 .rail .rw.k0.on{background:linear-gradient(90deg,#ff3d7166,#ff8a5c2e)}
 .rail .rw.k0.on,.rail .rw.k1.on,.rail .rw.k2.on,.rail .rw.k3.on,body.sbv2 .rail .rw.k0.on,body.sbv2 .rail .rw.k1.on,body.sbv2 .rail .rw.k2.on,body.sbv2 .rail .rw.k3.on{background:#ffffff1c}
 body.sbv2 .rail .rw{background:#ffffff0a}
 .rail .foot .rw .t{color:#e8ecf4}
+#gate{position:fixed;inset:0;z-index:70;background:radial-gradient(700px 400px at 85% -10%,#12304a66,transparent),radial-gradient(600px 400px at 0% 100%,#0f3a2a44,transparent),#070a10;display:flex;align-items:center;justify-content:center;padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left))}
+#gate[hidden]{display:none}
+#gate .gbox{width:100%;max-width:380px;text-align:center}
+#gate .glogo{width:72px;height:72px;margin:0 auto 18px;border-radius:20px;background:linear-gradient(135deg,#ff8a5c,#ff3d71);display:grid;place-items:center;font-size:32px;font-weight:800;color:#fff;box-shadow:inset 0 1px 0 #ffffff66}
+#gate h1{text-align:center;font-size:32px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+#gate .gsub{color:var(--mute);font-size:15px;margin-bottom:22px}
+#gate form,#gate #gno{text-align:left}
+#gate input{display:block;width:100%;background:#ffffff0c;border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:10px;color:var(--tx);font-size:17px;font-family:inherit;outline:0}
+#gate input:focus{border-color:var(--b)}
+#gate .gbtn{display:block;width:100%;min-height:52px;margin-top:10px;border:0;border-radius:14px;background:var(--b);color:#fff;font:600 17px inherit;font-family:inherit;cursor:pointer}
+#gate .gbtn.alt{background:#ffffff12;color:var(--tx)}
+#gate .ghelp{font-size:13px;color:var(--mute);text-align:center;margin-top:14px}
 #rmenu{position:fixed;z-index:60;min-width:190px;padding:6px;border-radius:14px;background:#252b38ee;backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid #ffffff1f;box-shadow:0 18px 50px #000b;display:none}
 #rmenu.on{display:block;animation:rpop .14s ease-out}@keyframes rpop{from{transform:scale(.94);opacity:0}}
 #rmenu button{display:block;width:100%;padding:9px 12px;border:0;border-radius:9px;background:none;color:var(--tx);font:15px inherit;font-family:inherit;text-align:left;cursor:pointer}#rmenu button:hover{background:var(--b)}
@@ -324,6 +336,9 @@ body.sbv2 .rail .rw{background:#ffffff0a}
  setTimeout(function(){if(!(window.Dash&&window.Dash.state&&window.Dash.state.status==='ready'))window.showBootError('Не загрузились файлы приложения (проверь интернет)')},6000);
 })();
 </script>
+<div id="gate"><div class="gbox"><div class="glogo">У</div><h1>Учёт</h1><p class="gsub" id="gsub">Загрузка…</p>
+<form id="gform" hidden><input id="sem" data-phone type="tel" inputmode="tel" autocomplete="username" placeholder="+998 90 123 45 67" value="+998 "><input id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)"><div class="err" id="serr"></div><button class="gbtn" id="sgo" type="submit">Войти</button><button class="gbtn alt" id="sup" type="button">Создать вход</button><p class="ghelp">Смс не нужно. Номер служит только логином. Пароль придумай сам и запомни: сбросить его нельзя.</p></form>
+<div id="gno" hidden><p class="ghelp" id="gnotxt"></p><button class="gbtn alt" data-gout>Выйти</button></div></div></div>
 <div class="wrap"><div id="app"><div class="status">Загрузка…</div></div></div>
 <nav class="rail" id="rail" aria-label="Меню" hidden></nav>
 <button id="rbtn" aria-label="Меню" aria-expanded="false" hidden><i></i><i></i><i></i></button><div id="rback"></div>
@@ -544,10 +559,20 @@ function adminHTML(S){
  return '<div class="sacc"><div class="sav">'+esc(S.role==='admin'?'А':'В')+'</div><div class="st">'+esc(phoneOf(S.email))+'<small>'+RL[S.role]+' · '+esc(msg)+'</small></div></div>'
   +'<div class="sseg">'+[['adm','Администраторы'],['biz','Бизнесы'],['usr','Пользователи']].map(([k,t])=>'<button data-tab="'+k+'" class="'+(tab===k?'on':'')+'">'+t+'</button>').join('')+'</div>'+list
   +'<button class="sbtn out" id="sout">Выйти</button>'}
-function renderSync(force){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)return;
+let gateOff=false;
+function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return;
+ const st=S?S.status:'checking',show=!gateOff&&(st==='checking'||st==='off'||st==='noaccess');
+ g.hidden=!show;document.body.classList.toggle('lock',show||document.body.classList.contains('lock')&&(cmpOpen||dOpen));
+ if(!show)return;
+ const form=st==='off',no=st==='noaccess';$('gform').hidden=!form;$('gno').hidden=!no;
+ $('gsub').textContent=form?'Войдите, чтобы увидеть данные':no?'Нет доступа':'Загрузка…';
+ if(no)$('gnotxt').textContent='Попроси администратора добавить твой номер, затем войди снова.'}
+setTimeout(()=>{if(window.Sync&&Sync.state().status==='checking'||!window.Sync){gateOff=true;renderGate()}},7000);
+$('gform').onsubmit=e=>e.preventDefault();
+function renderSync(force){const box=$('syncbox'),S=window.Sync&&Sync.state();renderGate();if(!S)return;
  const lbl=document.getElementById('synlbl');if(lbl)lbl.textContent=syncLabel();
  if(S.status==='noconfig'){box.innerHTML='<p class="help">Облако ещё не подключено: в приложении нет настроек Firebase. Данные хранятся только на этом устройстве.</p>';return}
- if(S.status==='off'||!S.email){box.dataset.mode='';box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" data-phone type="tel" inputmode="tel" autocomplete="username" placeholder="+998 90 123 45 67" value="+998 "><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
+ if(S.status==='off'||!S.email){box.dataset.mode='';box.innerHTML='';return}
  box.dataset.mode='in';
  if(S.role==='admin'){const ae=document.activeElement;if(!force&&ae&&box.contains(ae)&&ae.matches('input'))return;
   box.innerHTML='<div class="spage '+(SV.fwd?'pf':'pb')+'">'+adminHTML(S)+'</div>';return}
@@ -565,7 +590,7 @@ document.addEventListener('click',async e=>{const t=e.target;
  if(g){const up=g.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=x=>{er.textContent=x;er.classList.add('on')};
   if(!em)return bad('Введи номер полностью: +998 XX XXX XX XX');if(pw.length<6)return bad('Пароль от 6 знаков');
   g.textContent=up?'Создаю…':'Вхожу…';
-  try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw).catch(async err=>{const c=err.code||'',lg=legacyEmail($('sem').value);if(lg&&(c==='auth/invalid-credential'||c==='auth/user-not-found'||c==='auth/wrong-password'))return Sync.signIn(lg,pw);throw err}))}catch(err){renderSync();const c=err.code||'',x=$('serr');
+  try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw).catch(async err=>{const c=err.code||'',lg=legacyEmail($('sem').value);if(lg&&(c==='auth/invalid-credential'||c==='auth/user-not-found'||c==='auth/wrong-password'))return Sync.signIn(lg,pw);throw err}))}catch(err){g.textContent=up?'Создать вход':'Войти';const c=err.code||'',x=$('serr');
    x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}return}
  const tb=t.closest('[data-tab]');if(tb){SV.tab=tb.dataset.tab;SV.page=null;SV.fwd=true;renderSync(true);return}
  const nv=t.closest('[data-nav]');if(nv){const [k,id]=nv.dataset.nav.split(':');if(k==='nm'){SV.nrole=id;SV.form={};NP.clear()}if(k==='nb')SV.form={};go({k,id},true);return}
@@ -577,6 +602,7 @@ document.addEventListener('click',async e=>{const t=e.target;
   bt.textContent='Добавляю…';try{if(em===Sync.state().email)throw Object.assign(new Error('Это ваш собственный номер, вы уже в системе.'),{code:''});await Sync.addMember(em,pw,SV.nrole,$('mnm').value.trim(),SV.nrole==='owner'?[...NP]:[]);SV.tab=SV.nrole==='owner'?'usr':'adm';SV.form={};NP.clear();go(null,false)}catch(err){const c=err.code||'';bt.textContent='Добавить';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message)+(err.detail?' ('+err.detail+')':''))}return}
  if(t.closest('#badd')){const bt=t.closest('#badd'),v=$('bnm').value.trim();if(!v){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(v);SV.tab='biz';SV.form={};go(null,false)}catch(err){bt.textContent='Добавить бизнес';fail(err)}return}
  const del=t.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;try{await Sync.removeMember(del.dataset.mdel);go(null,false)}catch(err){fail(err)}return}
+ if(t.closest('[data-gout]')){await Sync.signOut();return}
  if(t.closest('#sout')){box0().dataset.mode='';SV.page=null;await Sync.signOut()}});
 const plur=(n)=>n===0?'Нет владельцев':n+' '+(n%10===1&&n%100!==11?'владелец':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'владельца':'владельцев');
 function renderRail(){const r=$('rail'),on=isAdmin();if(on&&r.querySelector('.rin'))return;document.body.classList.toggle('has-rail',on);r.hidden=!on;$('rbtn').hidden=!on;if(!on){r.innerHTML='';closeRail();return}

@@ -1,7 +1,7 @@
 // Cloud sync through Firebase (Auth + Firestore). Data lives in one shared document (shared/uchet) readable only by members; members/{uid} holds each person's role (admin | owner).
 // Local storage stays the source the UI reads; this module pushes every edit and merges remote changes (newest edit per day wins).
 const BASE = 'https://www.gstatic.com/firebasejs/10.12.5/';
-const S = { state: { status: window.FB_CONFIG ? 'off' : 'noconfig', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null } };
+const S = { state: { status: window.FB_CONFIG ? 'checking' : 'noconfig', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null } };
 const listeners = new Set();
 const set = (p) => { Object.assign(S.state, p); listeners.forEach((f) => { try { f(S.state); } catch (e) {} }); };
 let impl = null;
