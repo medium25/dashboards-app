@@ -79,7 +79,14 @@ const ready = (async () => {
         catch (e) { if (e.code === 'auth/email-already-in-use') cred = await Au.signInWithEmailAndPassword(a2, email, pass); else throw e; }
         await Au.signOut(a2);
       } finally { A.deleteApp(app2).catch(() => {}); }
-      await Fs.setDoc(memberRef(cred.user.uid), { role, phone: email, name: name || '', pages: pages || [], createdAt: Fs.serverTimestamp() });
+      try { await Fs.setDoc(memberRef(cred.user.uid), { role, phone: email, name: name || '', pages: pages || [], createdAt: Fs.serverTimestamp() }); }
+      catch (e) {
+        if (e.code === 'permission-denied') {                  // say who the database thinks is asking
+          const me = auth.currentUser, d = me ? await Fs.getDoc(memberRef(me.uid)).catch(() => null) : null;
+          e.detail = (me ? me.email : 'не вошли') + ' · запись в базе: ' + (d && d.exists() ? 'уровень ' + d.data().role : 'нет');
+        }
+        throw e;
+      }
     };
     impl = {
       signIn: (e, p) => Au.signInWithEmailAndPassword(auth, e, p),
