@@ -479,11 +479,17 @@ const SYNC_TXT={noaccess:'Нет доступа — нужен админист�
 const syncLabel=()=>SYNC_TXT[(window.Sync&&Sync.state().status)||'off']||'';
 Dash.canRedraw=()=>!editing;
 const isAdmin=()=>!!(window.Sync&&Sync.state().role==='admin');
-const syncTitle=()=>{const p=Dash.project(),S=window.Sync&&Sync.state();if(p&&S&&S.role)document.title=p.name};
+let lastBrand='',mfUrl=null;
+window.applyBrand=name=>{if(!name||name===lastBrand)return;lastBrand=name;document.title=name;const m=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(m)m.content=name;
+ fetch('manifest.webmanifest').then(r=>r.json()).then(j=>{const abs=u=>new URL(u,location.href).href;j.name=name;j.short_name=name.slice(0,12);j.start_url=abs(j.start_url||'./');j.scope=abs(j.scope||'./');(j.icons||[]).forEach(i=>{i.src=abs(i.src)});
+  const url=URL.createObjectURL(new Blob([JSON.stringify(j)],{type:'application/manifest+json'})),l=document.querySelector('link[rel=manifest]');if(l)l.href=url;if(mfUrl)URL.revokeObjectURL(mfUrl);mfUrl=url}).catch(()=>{})};
+window.currentBrandName=()=>{const p=Dash.project(),S=window.Sync&&Sync.state();return p?((S&&S.role)?p.name:BR.get('name',p.name)):'Учёт'};
+const syncTitle=()=>applyBrand(currentBrandName());
 Dash.onProject(()=>{sel=null;selMonth=null;editing=false;cmpOpen=false;dOpen=false;document.body.classList.remove('lock');syncTitle()});
 document.addEventListener('click',e=>{if(e.target.closest('[data-more]'))return;const b=e.target.closest('[data-project],[data-pj]');if(b)Dash.setProject(+(b.dataset.project??b.dataset.pj))});
+syncTitle();
 Dash.start((s,H)=>{
-  if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">Учёт</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':'Нет доступных бизнесов.'}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Настройки</button></div>`}
+  if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">${H.esc(window.currentBrandName())}</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':'Нет доступных бизнесов.'}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Настройки</button></div>`}
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1&&!isAdmin()?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
     <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).reverse().join('')}</div></div>`;
@@ -573,7 +579,7 @@ function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return
  const jn=S&&S.join,cp=Dash.H.config.projects[0]||{},nm0=jn?(jn.name||'Учёт'):(cp.name||'Учёт');
  g.classList.toggle('join',!!jn);$('gtitle').textContent=nm0;$('glogo').textContent=nm0.trim().charAt(0).toUpperCase()||'У';
  $('glogo').style.background='linear-gradient(135deg,'+GRAD[jn&&jn.bid?hue(jn.bid):(cp.id?hue(cp.id):0)]+')';
- if(jn?jn.name:cp.name)document.title=nm0;
+ if(jn?jn.name:cp.name)window.applyBrand(nm0);
  $('gsub').textContent=no?'Нет доступа':'';$('gsub').hidden=!no;
  if(no)$('gnotxt').textContent=S.joinError?'Ссылка недействительна или устарела. Попроси администратора прислать новую.':'Попроси администратора добавить твой номер, затем войди снова.'}
 setTimeout(()=>{if(window.Sync&&Sync.state().status==='checking'||!window.Sync){gateOff=true;renderGate()}},7000);
@@ -612,7 +618,7 @@ document.addEventListener('click',async e=>{const t=e.target;
  if(t.closest('#badd')){const bt=t.closest('#badd'),v=$('bnm').value.trim();if(!v){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(v);SV.tab='biz';SV.form={};go(null,false)}catch(err){bt.textContent='Добавить бизнес';fail(err)}return}
  const cp=t.closest('[data-copy],[data-share]');
  if(cp){const el=$('invlink');if(!el)return;const url=el.value;
-  if(cp.hasAttribute('data-share')&&navigator.share){try{await navigator.share({title:'Приглашение в «Учёт»',url})}catch(x){}return}
+  if(cp.hasAttribute('data-share')&&navigator.share){try{await navigator.share({title:'Приглашение в «'+((Dash.project()||{}).name||'Учёт')+'»',url})}catch(x){}return}
   try{await navigator.clipboard.writeText(url)}catch(x){el.select();document.execCommand('copy')}
   const old=cp.textContent;cp.textContent='Скопировано ✓';setTimeout(()=>{cp.textContent=old},1500);return}
  const ri=t.closest('[data-reset-inv]');if(ri){if(!confirm('Старая ссылка перестанет работать. Те, кто уже вошёл, останутся. Продолжить?'))return;try{await Sync.resetInvite(ri.dataset.resetInv)}catch(err){fail(err)}return}
