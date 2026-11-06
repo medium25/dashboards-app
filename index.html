@@ -540,7 +540,7 @@ function adminHTML(S){
   +(me?'<p class="snote">Это ваш аккаунт. Свой уровень изменить и себя убрать нельзя.</p>':sh('Уровень')+'<div class="sseg2"><button data-setrole="'+esc(m.uid)+':owner" class="'+(m.role==='owner'?'on':'')+'">Владелец</button><button data-setrole="'+esc(m.uid)+':admin" class="'+(m.role==='admin'?'on':'')+'">Администратор</button></div>')
   +(m.role==='owner'?sh('Видит бизнесы')+grp(bs.map(b=>'<div class="sr"><span class="st">'+esc(b.name)+'</span>'+swt('data-mpage',b.id,(m.pages||[]).includes(b.id),m.uid)+'</div>').join(''))||'':'<p class="snote">Администратор видит все бизнесы.</p>')
   +(me?'':'<button class="sbtn out" data-mdel="'+esc(m.uid)+'">Убрать пользователя</button>')}}
- if(pg&&pg.k==='b'){const b=bs.find(x=>x.id===pg.id);if(b){const tk=(S.invites||{})[b.id],link=tk?location.origin+location.pathname+'?join='+b.id+'.'+tk+'&n='+encodeURIComponent(b.name):'';
+ if(pg&&pg.k==='b'){const b=bs.find(x=>x.id===pg.id);if(b){const tk=(S.invites||{})[b.id],link=tk?SITE_URL+'?join='+b.id+'.'+tk+'&n='+encodeURIComponent(b.name):'';
   return back(esc(b.name))+grp('<div class="sr"><span class="st">Название</span><input class="sin" data-bname="'+esc(b.id)+'" value="'+esc(b.name)+'"></div>')
   +sh('Кто видит этот бизнес')+(owners.length?grp(owners.map(o=>'<div class="sr"><span class="st">'+esc(nm(o))+'<small>'+esc(phoneOf(o.phone))+'</small></span>'+swt('data-mpage',b.id,(o.pages||[]).includes(b.id),o.uid)+'</div>').join('')):'<p class="snote">Пока нет владельцев. Добавь их во вкладке «Пользователи».</p>')
   +'<p class="snote">Администраторы видят все бизнесы.</p>'
@@ -560,6 +560,7 @@ function adminHTML(S){
  return '<div class="sacc"><div class="sav">'+esc(S.role==='admin'?'А':'В')+'</div><div class="st">'+esc(phoneOf(S.email))+'<small>'+RL[S.role]+' · '+esc(msg)+'</small></div></div>'
   +'<div class="sseg">'+[['adm','Администраторы'],['biz','Бизнесы'],['usr','Пользователи']].map(([k,t])=>'<button data-tab="'+k+'" class="'+(tab===k?'on':'')+'">'+t+'</button>').join('')+'</div>'+list
   +'<button class="sbtn out" id="sout">Выйти</button>'}
+const SITE_URL='https://medium25.github.io/dashboards-app/';
 let gateOff=false;
 function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return;
  const st=S?S.status:'checking',show=!gateOff&&(st==='checking'||st==='off'||st==='noaccess');
