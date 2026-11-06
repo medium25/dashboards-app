@@ -137,6 +137,13 @@ body.lock{overflow:hidden}
 .top h1.br{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:26px;cursor:pointer;-webkit-tap-highlight-color:transparent}.top h1.br .bn{font-weight:800;letter-spacing:-.03em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top h1.br em{font-style:normal;font-size:14px;color:#5b6b86;font-weight:600}.top h1.br:active{opacity:.8}
 .bov{position:fixed;inset:0;z-index:40;background:#000a;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);bottom:var(--kb,0px)}.bov.open{display:flex}
 .bsh{width:100%;max-width:520px;max-height:100%;overflow-y:auto;background:linear-gradient(180deg,#131a28,#0d121b);border:1px solid var(--line);border-bottom:0;border-radius:28px 28px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom));animation:up .22s ease-out}
+#kov{align-items:stretch;background:#070a10;backdrop-filter:none;-webkit-backdrop-filter:none}
+#kov .bsh{max-width:none;height:100%;max-height:100%;border:0;border-radius:0;padding:0;background:linear-gradient(180deg,#0e1420,#090d15);animation:kin .26s cubic-bezier(.3,.9,.3,1)}
+@keyframes kin{from{transform:translateY(24px);opacity:0}}
+#kov .kbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:640px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 20px 10px;background:linear-gradient(180deg,#0e1420 70%,#0e142000)}
+#kov .kbar h2{margin:0;font-size:30px;font-weight:800;letter-spacing:-.03em}
+#kov .kdone{border:0;background:none;color:var(--b);font:600 17px inherit;font-family:inherit;cursor:pointer;padding:8px 0}
+#kov .kbody{max-width:640px;margin:0 auto;padding:4px 20px calc(40px + env(safe-area-inset-bottom))}
 .bsh .grab{width:40px;height:4px;border-radius:9px;background:#2c3a52;margin:0 auto 16px}.bsh h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:14px}
 .bsh label.f{display:block;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:14px 2px 8px}
 .bsh input.nm{width:100%;background:#ffffff08;border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:var(--tx);font-weight:800;font-size:22px;font-family:inherit;outline:0;letter-spacing:-.02em}.bsh input.nm:focus{border-color:var(--b);box-shadow:0 0 0 3px #3d8bff33}
@@ -422,8 +429,8 @@ Dash.start((s,H)=>{
 // keep active month chip visible in the scroller after re-render
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
 </script>
-<div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Настройки</h2><div id="syncbox"></div>
-<div class="err" id="kerr"></div><button class="reset" id="kclose">Закрыть</button></div></div>
+<div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="kbar"><h2>Настройки</h2><button class="kdone" id="kclose">Готово</button></div><div class="kbody"><div id="syncbox"></div>
+<div class="err" id="kerr"></div></div></div></div>
 <div id="inst" role="note"><div class="ic2"></div><p><b>Установи как приложение.</b> Нажми <svg class="sh" viewBox="0 0 24 24" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/></svg> «Поделиться», затем <b>«На экран «Домой»»</b>.</p><button id="instx">Понятно</button></div>
 <div class="toast" id="toast"></div>
 <script>
@@ -507,7 +514,7 @@ document.addEventListener('click',async e=>{const t=e.target;
  const nr=t.closest('[data-nrole]');if(nr){SV.nrole=nr.dataset.nrole;SV.fwd=true;renderSync(true);return}
  if(t.closest('#madd')){const bt=t.closest('#madd'),er=$('merr'),em=emailOf($('mph').value),pw=$('mpw').value,bad=x=>{er.textContent=x;er.classList.add('on')};er.classList.remove('on');
   if(!em)return bad('Введи номер полностью: +998 XX XXX XX XX');if(pw.length<6)return bad('Пароль от 6 знаков');
-  bt.textContent='Добавляю…';try{await Sync.addMember(em,pw,SV.nrole,$('mnm').value.trim(),SV.nrole==='owner'?[...NP]:[]);SV.tab=SV.nrole==='owner'?'usr':'adm';SV.form={};NP.clear();go(null,false)}catch(err){const c=err.code||'';bt.textContent='Добавить';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message)+(err.detail?' ('+err.detail+')':''))}return}
+  bt.textContent='Добавляю…';try{if(em===Sync.state().email)throw Object.assign(new Error('Это ваш собственный номер, вы уже в системе.'),{code:''});await Sync.addMember(em,pw,SV.nrole,$('mnm').value.trim(),SV.nrole==='owner'?[...NP]:[]);SV.tab=SV.nrole==='owner'?'usr':'adm';SV.form={};NP.clear();go(null,false)}catch(err){const c=err.code||'';bt.textContent='Добавить';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message)+(err.detail?' ('+err.detail+')':''))}return}
  if(t.closest('#badd')){const bt=t.closest('#badd'),v=$('bnm').value.trim();if(!v){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(v);SV.tab='biz';SV.form={};go(null,false)}catch(err){bt.textContent='Добавить бизнес';fail(err)}return}
  const del=t.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;try{await Sync.removeMember(del.dataset.mdel);go(null,false)}catch(err){fail(err)}return}
  if(t.closest('#sout')){box0().dataset.mode='';SV.page=null;await Sync.signOut()}});
