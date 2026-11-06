@@ -462,7 +462,8 @@ const SYNC_TXT={noaccess:'Нет доступа — нужен админист�
 const syncLabel=()=>SYNC_TXT[(window.Sync&&Sync.state().status)||'off']||'';
 Dash.canRedraw=()=>!editing;
 const isAdmin=()=>!!(window.Sync&&Sync.state().role==='admin');
-Dash.onProject(()=>{sel=null;selMonth=null;editing=false;cmpOpen=false;dOpen=false;document.body.classList.remove('lock')});
+const syncTitle=()=>{const p=Dash.project(),S=window.Sync&&Sync.state();if(p&&S&&S.role)document.title=p.name};
+Dash.onProject(()=>{sel=null;selMonth=null;editing=false;cmpOpen=false;dOpen=false;document.body.classList.remove('lock');syncTitle()});
 document.addEventListener('click',e=>{if(e.target.closest('[data-more]'))return;const b=e.target.closest('[data-project],[data-pj]');if(b)Dash.setProject(+(b.dataset.project??b.dataset.pj))});
 Dash.start((s,H)=>{
   if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">Учёт</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':'Нет доступных бизнесов.'}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Настройки</button></div>`}
