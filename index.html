@@ -283,6 +283,8 @@ body.sbv2 .rail .rw{background:#ffffff0a}
 #gate .gbtn{display:block;width:100%;min-height:52px;margin-top:10px;border:0;border-radius:14px;background:var(--b);color:#fff;font:600 17px inherit;font-family:inherit;cursor:pointer}
 #gate .gbtn.alt{background:#ffffff12;color:var(--tx)}
 #gate .ghelp{font-size:13px;color:var(--mute);text-align:center;margin-top:14px}
+#gate form:not([hidden]){display:flex;flex-direction:column}#gate .ghelp{order:5}
+#gate.join #sup{order:1;background:var(--b);color:#fff}#gate.join #sgo{order:2;background:#ffffff12;color:var(--tx)}
 #rmenu{position:fixed;z-index:60;min-width:190px;padding:6px;border-radius:14px;background:#252b38ee;backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid #ffffff1f;box-shadow:0 18px 50px #000b;display:none}
 #rmenu.on{display:block;animation:rpop .14s ease-out}@keyframes rpop{from{transform:scale(.94);opacity:0}}
 #rmenu button{display:block;width:100%;padding:9px 12px;border:0;border-radius:9px;background:none;color:var(--tx);font:15px inherit;font-family:inherit;text-align:left;cursor:pointer}#rmenu button:hover{background:var(--b)}
@@ -336,7 +338,7 @@ body.sbv2 .rail .rw{background:#ffffff0a}
  setTimeout(function(){if(!(window.Dash&&window.Dash.state&&window.Dash.state.status==='ready'))window.showBootError('Не загрузились файлы приложения (проверь интернет)')},6000);
 })();
 </script>
-<div id="gate"><div class="gbox"><div class="glogo">У</div><h1>Учёт</h1><p class="gsub" id="gsub">Загрузка…</p>
+<div id="gate"><div class="gbox"><div class="glogo" id="glogo">У</div><h1 id="gtitle">Учёт</h1><p class="gsub" id="gsub">Загрузка…</p>
 <form id="gform" hidden><input id="sem" data-phone type="tel" inputmode="tel" autocomplete="username" placeholder="+998 90 123 45 67" value="+998 "><input id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)"><div class="err" id="serr"></div><button class="gbtn" id="sgo" type="submit">Войти</button><button class="gbtn alt" id="sup" type="button">Создать вход</button><p class="ghelp">Смс не нужно. Номер служит только логином. Пароль придумай сам и запомни: сбросить его нельзя.</p></form>
 <div id="gno" hidden><p class="ghelp" id="gnotxt"></p><button class="gbtn alt" data-gout>Выйти</button></div></div></div>
 <div class="wrap"><div id="app"><div class="status">Загрузка…</div></div></div>
@@ -560,6 +562,7 @@ function adminHTML(S){
  return '<div class="sacc"><div class="sav">'+esc(S.role==='admin'?'А':'В')+'</div><div class="st">'+esc(phoneOf(S.email))+'<small>'+RL[S.role]+' · '+esc(msg)+'</small></div></div>'
   +'<div class="sseg">'+[['adm','Администраторы'],['biz','Бизнесы'],['usr','Пользователи']].map(([k,t])=>'<button data-tab="'+k+'" class="'+(tab===k?'on':'')+'">'+t+'</button>').join('')+'</div>'+list
   +'<button class="sbtn out" id="sout">Выйти</button>'}
+const GRAD=['#ff8a5c,#ff3d71','#ffc15a,#ff8a2a','#34e0c8,#0ea5e9','#b69cff,#6d5cff'],hue=id=>[...String(id)].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
 const SITE_URL='https://medium25.github.io/dashboards-app/';
 let gateOff=false;
 function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return;
@@ -567,8 +570,11 @@ function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return
  g.hidden=!show;document.body.classList.toggle('lock',show||document.body.classList.contains('lock')&&(cmpOpen||dOpen));
  if(!show)return;
  const form=st==='off',no=st==='noaccess';$('gform').hidden=!form;$('gno').hidden=!no;
- const jn=S&&S.join;
- $('gsub').textContent=form?(jn?'Вас приглашают в бизнес'+(jn.name?' «'+jn.name+'»':'')+'. Создайте вход или войдите.':'Войдите, чтобы увидеть данные'):no?'Нет доступа':'Загрузка…';
+ const jn=S&&S.join,nm0=(jn&&jn.name)||'Учёт';
+ g.classList.toggle('join',!!jn);$('gtitle').textContent=nm0;$('glogo').textContent=nm0.trim().charAt(0).toUpperCase()||'У';
+ $('glogo').style.background='linear-gradient(135deg,'+GRAD[jn&&jn.bid?hue(jn.bid):0]+')';
+ if(jn&&jn.name)document.title=nm0;
+ $('gsub').textContent=form?(jn?'Создайте вход, чтобы открыть дашборд бизнеса. Если вход уже есть, нажмите «Войти».':'Войдите, чтобы увидеть данные'):no?'Нет доступа':'Загрузка…';
  if(no)$('gnotxt').textContent=S.joinError?'Ссылка недействительна или устарела. Попроси администратора прислать новую.':'Попроси администратора добавить твой номер, затем войди снова.'}
 setTimeout(()=>{if(window.Sync&&Sync.state().status==='checking'||!window.Sync){gateOff=true;renderGate()}},7000);
 $('gform').onsubmit=e=>e.preventDefault();
@@ -616,7 +622,7 @@ document.addEventListener('click',async e=>{const t=e.target;
 const plur=(n)=>n===0?'Нет владельцев':n+' '+(n%10===1&&n%100!==11?'владелец':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'владельца':'владельцев');
 function renderRail(){const r=$('rail'),on=isAdmin();if(on&&r.querySelector('.rin'))return;document.body.classList.toggle('has-rail',on);r.hidden=!on;$('rbtn').hidden=!on;if(!on){r.innerHTML='';closeRail();return}
  const ps=Dash.H.config.projects,cur=Dash.state.pi;
- r.innerHTML='<div class="sec">Бизнесы<button data-bnew title="Новый бизнес">＋</button></div>'+ps.map((p,i)=>'<div class="sw" data-i="'+i+'"><button class="rw k'+(i%4)+' '+(i===cur?'on':'')+'" data-pj="'+i+'" aria-label="'+esc(p.name)+'"><i class="lt c'+(i%4)+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span class="t">'+esc(p.name)+'</span><span class="more" data-more="'+i+'" title="Действия">⋯</span></button></div>').join('')
+ r.innerHTML='<div class="sec">Бизнесы<button data-bnew title="Новый бизнес">＋</button></div>'+ps.map((p,i)=>'<div class="sw" data-i="'+i+'"><button class="rw k'+hue(p.id)+' '+(i===cur?'on':'')+'" data-pj="'+i+'" aria-label="'+esc(p.name)+'"><i class="lt c'+hue(p.id)+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span class="t">'+esc(p.name)+'</span><span class="more" data-more="'+i+'" title="Действия">⋯</span></button></div>').join('')
  +'<div class="sp"></div><div class="foot"><button class="rw" data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span class="t">Настройки</span></button><div class="vsw">Вид панели: <button data-sbv="1" class="'+(SBV==='1'?'on':'')+'">1</button><button data-sbv="2" class="'+(SBV==='2'?'on':'')+'">2</button></div></div>'}
 let SBV='1';try{SBV=new URLSearchParams(location.search).get('sb')||localStorage.getItem('sbv')||'1';if(SBV!=='2')SBV='1';localStorage.setItem('sbv',SBV)}catch(e){}
 document.body.classList.add('sbv'+SBV);

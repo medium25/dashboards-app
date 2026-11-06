@@ -154,4 +154,4 @@ window.Sync = {
   async removeMember(id) { await ready; return impl.removeMember(id); },
   async signOut() { await ready; if (impl) return impl.signOut(); },
 };
-set({ join: pending0 ? { name: pending0.name } : null });
+set({ join: pending0 ? { name: pending0.name, bid: pending0.bid } : null });
