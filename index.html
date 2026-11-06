@@ -209,6 +209,29 @@ body.lock{overflow:hidden}
 .rail button:hover,.rail button:active{background:#ffffff12;color:var(--tx)}
 .rail .sp{flex:1}
 body.has-rail{padding-left:calc(env(safe-area-inset-left) + 76px)}.rail[hidden]{display:none}.rail button.on{background:#ffffff14;color:var(--tx)}.rail .lt{flex:none;width:24px;height:24px;border-radius:8px;background:#ffffff14;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;color:var(--tx)}.rail button.on .lt{background:var(--b);color:#fff}.rail hr{border:0;border-top:1px solid var(--line);margin:4px 8px}
+
+#syncbox .spage.pf{animation:spf .28s cubic-bezier(.3,.9,.3,1)}#syncbox .spage.pb{animation:spb .28s cubic-bezier(.3,.9,.3,1)}
+@keyframes spf{from{transform:translateX(28px);opacity:0}}@keyframes spb{from{transform:translateX(-28px);opacity:0}}
+#syncbox .sacc{display:flex;align-items:center;gap:12px;background:#ffffff0a;border-radius:16px;padding:12px 14px}
+#syncbox .sav{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6ea2ff,#a06bff);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+#syncbox small{display:block;color:var(--mute);font-size:13px;font-weight:400}
+#syncbox .sseg{display:flex;background:#ffffff12;border-radius:10px;padding:2px;margin:14px 0 4px}#syncbox .sseg button{flex:1;padding:8px 2px;border:0;border-radius:8px;background:none;color:var(--mute);font:600 13px inherit;font-family:inherit;cursor:pointer}#syncbox .sseg button.on{background:#ffffff26;color:var(--tx);box-shadow:0 2px 8px #0005}
+#syncbox .sseg2{display:flex;background:#ffffff12;border-radius:10px;padding:2px;margin:6px 0}#syncbox .sseg2 button{flex:1;padding:8px 2px;border:0;border-radius:8px;background:none;color:var(--mute);font:600 14px inherit;font-family:inherit;cursor:pointer}#syncbox .sseg2 button.on{background:#ffffff26;color:var(--tx)}
+#syncbox .sgh{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:18px 14px 7px}
+#syncbox .sg{background:#ffffff0a;border-radius:14px;overflow:hidden}
+#syncbox .sr{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:10px 14px;border:0;background:none;color:var(--tx);font:inherit;font-family:inherit;text-align:left;position:relative;cursor:pointer}
+#syncbox .sr+.sr:before{content:"";position:absolute;left:14px;right:0;top:0;height:1px;background:var(--line)}
+#syncbox div.sr{cursor:default}
+#syncbox .st{flex:1;min-width:0;font-weight:500}#syncbox .sv{color:var(--mute);font-size:14px}#syncbox .sch{color:#ffffff45;font-size:20px}
+#syncbox .sr.add .st{color:var(--b);font-weight:600}
+#syncbox .sin{flex:1;min-width:0;border:0;background:none;color:var(--tx);font:inherit;font-family:inherit;text-align:right;outline:0}#syncbox .sin.l{text-align:left}#syncbox .sin::placeholder{color:#ffffff50}
+#syncbox .snav{margin:2px 0 4px}#syncbox .sback{border:0;background:none;color:var(--b);font:500 17px inherit;font-family:inherit;padding:6px 0;cursor:pointer}
+#syncbox .sh1{font-size:28px;font-weight:800;letter-spacing:-.03em;margin:0 2px 8px}
+#syncbox .snote{font-size:13px;color:var(--mute);margin:8px 14px}
+#syncbox .sbtn{display:block;width:100%;min-height:50px;margin-top:18px;border:0;border-radius:14px;background:var(--b);color:#fff;font:600 17px inherit;font-family:inherit;cursor:pointer}#syncbox .sbtn.out{background:#ffffff0a;color:#ff6b70}
+#syncbox .sw{position:relative;width:51px;height:31px;flex:none}#syncbox .sw input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+#syncbox .sw i{position:absolute;inset:0;border-radius:99px;background:#ffffff26;transition:background .2s}#syncbox .sw i:after{content:"";position:absolute;left:2px;top:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px #0006;transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
+#syncbox .sw input:checked+i{background:#32d27a}#syncbox .sw input:checked+i:after{transform:translateX(20px)}
 </style>
 </head><body><script>
 // Safety net: if the app fails to start (blank screen), show why and offer a reset instead of an empty page.
@@ -412,42 +435,77 @@ $('kclose').onclick=()=>$('kov').classList.remove('open');$('kov').onclick=e=>{i
 // ---- sync box ----
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ST={ok:'Всё сохранено в облаке',syncing:'Синхронизация…',offline:'Нет сети — данные отправятся при подключении',error:'Ошибка: '};
-function renderSync(){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)return;
+const SV={tab:'usr',page:null,fwd:true,nrole:'owner',form:{}};
+const NP=new Set(),RL={admin:'Администратор',owner:'Владелец'};
+const emailOf=p=>{const d=String(p).replace(/\D/g,'');return d.length>=7?d+'@phone.uchet.app':''};
+const phoneOf=e=>/@phone\.uchet\.app$/.test(e||'')?'+'+e.split('@')[0]:e;
+const nm=m=>m.name||phoneOf(m.phone);
+const swt=(attr,val,on,uid)=>'<label class="sw"><input type="checkbox" '+attr+'="'+esc(val)+'"'+(uid?' data-uid="'+esc(uid)+'"':'')+(on?' checked':'')+'><i></i></label>';
+const nav=(to,main,sub,val)=>'<button class="sr" data-nav="'+esc(to)+'"><span class="st">'+main+(sub?'<small>'+sub+'</small>':'')+'</span>'+(val?'<span class="sv">'+val+'</span>':'')+'<span class="sch">›</span></button>';
+const grp=rows=>rows?'<div class="sg">'+rows+'</div>':'';
+const sh=t=>'<div class="sgh">'+t+'</div>';
+function adminHTML(S){
+ const ms=S.members||[],bs=S.businesses||[],owners=ms.filter(m=>m.role==='owner'),admins=ms.filter(m=>m.role==='admin');
+ const F=SV.form,pg=SV.page,msg=S.status==='noaccess'?'Нет доступа':S.status==='error'?ST.error+S.error:(ST[S.status]||'');
+ const back=(t)=>'<div class="snav"><button class="sback" data-back>‹ Назад</button></div><h3 class="sh1">'+t+'</h3>';
+ if(pg&&pg.k==='m'){const m=ms.find(x=>x.uid===pg.id);if(m){const me=m.uid===S.uid;
+  return back(esc(nm(m)))+grp('<div class="sr"><span class="st">Имя</span><input class="sin" data-mname="'+esc(m.uid)+'" value="'+esc(m.name||'')+'" placeholder="Без имени"></div><div class="sr"><span class="st">Телефон</span><span class="sv">'+esc(phoneOf(m.phone))+'</span></div>')
+  +(me?'<p class="snote">Это ваш аккаунт. Свой уровень изменить и себя убрать нельзя.</p>':sh('Уровень')+'<div class="sseg2"><button data-setrole="'+esc(m.uid)+':owner" class="'+(m.role==='owner'?'on':'')+'">Владелец</button><button data-setrole="'+esc(m.uid)+':admin" class="'+(m.role==='admin'?'on':'')+'">Администратор</button></div>')
+  +(m.role==='owner'?sh('Видит бизнесы')+grp(bs.map(b=>'<div class="sr"><span class="st">'+esc(b.name)+'</span>'+swt('data-mpage',b.id,(m.pages||[]).includes(b.id),m.uid)+'</div>').join(''))||'':'<p class="snote">Администратор видит все бизнесы.</p>')
+  +(me?'':'<button class="sbtn out" data-mdel="'+esc(m.uid)+'">Убрать пользователя</button>')}}
+ if(pg&&pg.k==='b'){const b=bs.find(x=>x.id===pg.id);if(b){
+  return back(esc(b.name))+grp('<div class="sr"><span class="st">Название</span><input class="sin" data-bname="'+esc(b.id)+'" value="'+esc(b.name)+'"></div>')
+  +sh('Кто видит этот бизнес')+(owners.length?grp(owners.map(o=>'<div class="sr"><span class="st">'+esc(nm(o))+'<small>'+esc(phoneOf(o.phone))+'</small></span>'+swt('data-mpage',b.id,(o.pages||[]).includes(b.id),o.uid)+'</div>').join('')):'<p class="snote">Пока нет владельцев. Добавь их во вкладке «Пользователи».</p>')
+  +'<p class="snote">Администраторы видят все бизнесы.</p>'}}
+ if(pg&&pg.k==='nm'){const ow=SV.nrole==='owner';
+  return back(ow?'Новый пользователь':'Новый администратор')+grp('<div class="sr"><input class="sin l" id="mnm" placeholder="Имя (необязательно)" value="'+esc(F.name||'')+'"></div><div class="sr"><input class="sin l" id="mph" type="tel" inputmode="tel" placeholder="Номер телефона" value="'+esc(F.phone||'')+'"></div><div class="sr"><input class="sin l" id="mpw" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" value="'+esc(F.pw||'')+'"></div>')
+  +'<div class="sseg2"><button data-nrole="owner" class="'+(ow?'on':'')+'">Владелец</button><button data-nrole="admin" class="'+(ow?'':'on')+'">Администратор</button></div>'
+  +(ow?sh('Какие бизнесы показать')+grp(bs.map(b=>'<div class="sr"><span class="st">'+esc(b.name)+'</span>'+swt('data-npage',b.id,NP.has(b.id))+'</div>').join('')):'<p class="snote">Администратор видит все бизнесы и управляет пользователями.</p>')
+  +'<div class="err" id="merr"></div><button class="sbtn" id="madd">Добавить</button>'}
+ if(pg&&pg.k==='nb'){return back('Новый бизнес')+grp('<div class="sr"><input class="sin l" id="bnm" placeholder="Название" value="'+esc(F.biz||'')+'"></div>')+'<button class="sbtn" id="badd">Добавить бизнес</button>'}
+ SV.page=null;
+ const tab=SV.tab,addRow=(to,t)=>'<button class="sr add" data-nav="'+to+'"><span class="st">＋ '+t+'</span></button>';
+ let list='';
+ if(tab==='adm')list=sh('Администраторы')+grp(admins.map(m=>nav('m:'+m.uid,esc(nm(m)),esc(phoneOf(m.phone))+(m.uid===S.uid?' · это вы':''))).join('')+addRow('nm:admin','Добавить администратора'));
+ else if(tab==='biz')list=sh('Бизнесы')+grp(bs.map(b=>nav('b:'+b.id,esc(b.name),'Владельцев: '+owners.filter(o=>(o.pages||[]).includes(b.id)).length)).join('')+addRow('nb','Добавить бизнес'));
+ else list=sh('Пользователи')+grp(owners.map(m=>nav('m:'+m.uid,esc(nm(m)),esc(phoneOf(m.phone)),'бизнесов: '+(m.pages||[]).length)).join('')+addRow('nm:owner','Добавить пользователя'));
+ return '<div class="sacc"><div class="sav">'+esc(S.role==='admin'?'А':'В')+'</div><div class="st">'+esc(phoneOf(S.email))+'<small>'+RL[S.role]+' · '+esc(msg)+'</small></div></div>'
+  +'<div class="sseg">'+[['adm','Администраторы'],['biz','Бизнесы'],['usr','Пользователи']].map(([k,t])=>'<button data-tab="'+k+'" class="'+(tab===k?'on':'')+'">'+t+'</button>').join('')+'</div>'+list
+  +'<button class="sbtn out" id="sout">Выйти</button>'}
+function renderSync(force){const box=$('syncbox'),S=window.Sync&&Sync.state();if(!S)return;
  const lbl=document.getElementById('synlbl');if(lbl)lbl.textContent=syncLabel();
  if(S.status==='noconfig'){box.innerHTML='<p class="help">Облако ещё не подключено: в приложении нет настроек Firebase. Данные хранятся только на этом устройстве.</p>';return}
  if(S.status==='off'||!S.email){box.dataset.mode='';box.innerHTML='<label class="f">Войти, чтобы данные были везде</label><input class="nm sm" id="sem" type="tel" inputmode="tel" autocomplete="username" placeholder="Номер телефона"><input class="nm sm" id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)" style="margin-top:8px"><div class="err" id="serr"></div><button class="done" id="sgo">Войти</button><button class="done alt" id="sup" style="margin-top:8px">Создать вход</button><p class="help">Смс не нужно. Номер служит только логином, пароль придумай сам и запомни: сбросить его нельзя.</p>';return}
- const RL={admin:'Администратор',owner:'Владелец'},msg=S.status==='noaccess'?'Нет доступа. Попроси администратора добавить твой номер.':S.status==='error'?ST.error+S.error:(ST[S.status]||'');
- const mode='in:'+S.uid+':'+S.role+':'+(S.status==='noaccess');
- if(box.dataset.mode===mode){const st=$('sstat');if(st)st.textContent=msg;const ml=$('mlist');if(ml)ml.innerHTML=membersHTML(S);const bl=$('blist');if(bl)bl.innerHTML=bizHTML(S);const mp=$('mpages');if(mp)mp.innerHTML=pagesHTML(S,NP,'data-npage');return}
- box.dataset.mode=mode;
- box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(phoneOf(S.email))+'</b>'+(S.role?' · '+RL[S.role]:'')+'</p><p class="help" id="sstat">'+esc(msg)+'</p>'
- +(S.role==='admin'?'<label class="f" style="margin-top:14px">Бизнесы</label><div id="blist">'+bizHTML(S)+'</div><input class="nm sm" id="bnm" placeholder="Название нового бизнеса" style="margin-top:8px"><button class="done alt" id="badd" style="margin-top:8px">Добавить бизнес</button>'
- +'<label class="f" style="margin-top:18px">Пользователи</label><div id="mlist">'+membersHTML(S)+'</div><input class="nm sm" id="mnm" placeholder="Имя (необязательно)" style="margin-top:8px"><input class="nm sm" id="mph" type="tel" inputmode="tel" placeholder="Номер телефона" style="margin-top:8px"><input class="nm sm" id="mpw" type="text" autocomplete="off" autocapitalize="off" placeholder="Пароль для него (от 6 знаков)" style="margin-top:8px"><select class="nm sm" id="mrl" style="margin-top:8px"><option value="owner">Владелец — видит выбранные бизнесы</option><option value="admin">Администратор — видит всё и управляет</option></select><div class="help" style="margin:8px 0 0">Какие бизнесы покажем владельцу:</div><div id="mpages">'+pagesHTML(S,NP,'data-npage')+'</div><div class="err" id="merr"></div><button class="done" id="madd">Добавить пользователя</button>':'')
- +'<button class="done alt" id="sout" style="margin-top:8px">Выйти</button>'}
-const NP=new Set();
-function bizHTML(S){return (S.businesses||[]).map(b=>'<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)"><b>'+esc(b.name)+'</b></div>').join('')||'<p class="help">Загрузка…</p>'}
-function pagesHTML(S,set,attr,uid){const bs=S.businesses||[];return bs.length?bs.map(b=>'<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:14px"><input type="checkbox" '+attr+'="'+esc(b.id)+'"'+(uid?' data-uid="'+esc(uid)+'"':'')+(set.has(b.id)?' checked':'')+'> '+esc(b.name)+'</label>').join(''):''}
-const box0=()=>$('syncbox');
-function membersHTML(S){const RL={admin:'Администратор',owner:'Владелец'},ms=(S.members||[]).slice().sort((a,b)=>(a.role==='admin'?0:1)-(b.role==='admin'?0:1));
- return ms.length?ms.map(m=>{const me=m.uid===S.uid;return '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:0"><b>'+esc(m.name||phoneOf(m.phone))+'</b><div class="help" style="margin:0">'+esc(phoneOf(m.phone))+(me?' · '+(RL[m.role]||esc(m.role))+' · это ты':'')+'</div></div>'+(me?'':'<select class="nm sm" data-mrole="'+esc(m.uid)+'" style="width:auto;margin:0;padding:6px 8px;font-size:14px"><option value="owner"'+(m.role==='owner'?' selected':'')+'>Владелец</option><option value="admin"'+(m.role==='admin'?' selected':'')+'>Администратор</option></select><button class="done alt" data-mdel="'+esc(m.uid)+'" style="width:auto;padding:6px 12px;margin:0">Убрать</button>')+'</div>'+(m.role==='owner'?'<div style="margin-top:4px">'+(pagesHTML(S,new Set(m.pages||[]),'data-mpage',m.uid)||'')+'</div>':'')+'</div>'}).join(''):'<p class="help">Загрузка…</p>'}
-const emailOf=p=>{const d=String(p).replace(/\D/g,'');return d.length>=7?d+'@phone.uchet.app':''};
-const phoneOf=e=>/@phone\.uchet\.app$/.test(e||'')?'+'+e.split('@')[0]:e;
-document.addEventListener('change',async e=>{const np=e.target.closest('[data-npage]');if(np){np.checked?NP.add(np.dataset.npage):NP.delete(np.dataset.npage);return}
- const mp=e.target.closest('[data-mpage]');if(mp){const S=Sync.state(),m=(S.members||[]).find(x=>x.uid===mp.dataset.uid);if(!m)return;const set=new Set(m.pages||[]);mp.checked?set.add(mp.dataset.mpage):set.delete(mp.dataset.mpage);try{await Sync.setPages(m.uid,[...set])}catch(err){alert('Не удалось: '+(err.code||err.message));renderSync()}return}
- const s=e.target.closest('[data-mrole]');if(!s)return;try{await Sync.setRole(s.dataset.mrole,s.value)}catch(err){alert('Не удалось: '+(err.code||err.message));renderSync()}});
-document.addEventListener('click',async e=>{
- const go=e.target.closest('#sgo,#sup');
- if(go){const up=go.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=t=>{er.textContent=t;er.classList.add('on')};
+ box.dataset.mode='in';
+ if(S.role==='admin'){const ae=document.activeElement;if(!force&&ae&&box.contains(ae)&&ae.matches('input'))return;
+  box.innerHTML='<div class="spage '+(SV.fwd?'pf':'pb')+'">'+adminHTML(S)+'</div>';return}
+ const msg=S.status==='noaccess'?'Нет доступа. Попроси администратора добавить твой номер.':S.status==='error'?ST.error+S.error:(ST[S.status]||'');
+ box.innerHTML='<p class="help" style="margin-top:0">Вы вошли: <b>'+esc(phoneOf(S.email))+'</b>'+(S.role?' · '+RL[S.role]:'')+'</p><p class="help">'+esc(msg)+'</p><button class="done alt" id="sout" style="margin-top:8px">Выйти</button>'}
+const box0=()=>$('syncbox'),fail=err=>alert('Не удалось: '+(err.code||err.message)),go=(p,fwd)=>{SV.page=p;SV.fwd=fwd;renderSync(true)};
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='mnm')SV.form.name=t.value;else if(t.id==='mph')SV.form.phone=t.value;else if(t.id==='mpw')SV.form.pw=t.value;else if(t.id==='bnm')SV.form.biz=t.value});
+document.addEventListener('change',async e=>{const t=e.target;
+ const np=t.closest('[data-npage]');if(np){np.checked?NP.add(np.dataset.npage):NP.delete(np.dataset.npage);return}
+ const mp=t.closest('[data-mpage]');if(mp){const m=(Sync.state().members||[]).find(x=>x.uid===mp.dataset.uid);if(!m)return;const set=new Set(m.pages||[]);mp.checked?set.add(mp.dataset.mpage):set.delete(mp.dataset.mpage);try{await Sync.setPages(m.uid,[...set])}catch(err){fail(err);renderSync(true)}return}
+ const mn=t.closest('[data-mname]');if(mn){try{await Sync.updateMember(mn.dataset.mname,{name:mn.value.trim()})}catch(err){fail(err)}return}
+ const bn=t.closest('[data-bname]');if(bn){const v=bn.value.trim();if(!v){renderSync(true);return}try{await Sync.renameBusiness(bn.dataset.bname,v)}catch(err){fail(err)}}});
+document.addEventListener('click',async e=>{const t=e.target;
+ const g=t.closest('#sgo,#sup');
+ if(g){const up=g.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=x=>{er.textContent=x;er.classList.add('on')};
   if(!em)return bad('Введи номер телефона');if(pw.length<6)return bad('Пароль от 6 знаков');
-  go.textContent=up?'Создаю…':'Вхожу…';
+  g.textContent=up?'Создаю…':'Вхожу…';
   try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw))}catch(err){renderSync();const c=err.code||'',x=$('serr');
-   x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}}
- if(e.target.closest('#madd')){const bt=e.target.closest('#madd'),er=$('merr'),em=emailOf($('mph').value),pw=$('mpw').value,bad=t=>{er.textContent=t;er.classList.add('on')};er.classList.remove('on');
+   x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}return}
+ const tb=t.closest('[data-tab]');if(tb){SV.tab=tb.dataset.tab;SV.page=null;SV.fwd=true;renderSync(true);return}
+ const nv=t.closest('[data-nav]');if(nv){const [k,id]=nv.dataset.nav.split(':');if(k==='nm'){SV.nrole=id;SV.form={};NP.clear()}if(k==='nb')SV.form={};go({k,id},true);return}
+ if(t.closest('[data-back]')){go(null,false);return}
+ const sr=t.closest('[data-setrole]');if(sr){const [u,r]=sr.dataset.setrole.split(':');try{await Sync.setRole(u,r)}catch(err){fail(err)}return}
+ const nr=t.closest('[data-nrole]');if(nr){SV.nrole=nr.dataset.nrole;SV.fwd=true;renderSync(true);return}
+ if(t.closest('#madd')){const bt=t.closest('#madd'),er=$('merr'),em=emailOf($('mph').value),pw=$('mpw').value,bad=x=>{er.textContent=x;er.classList.add('on')};er.classList.remove('on');
   if(!em)return bad('Введи номер телефона');if(pw.length<6)return bad('Пароль от 6 знаков');
-  bt.textContent='Добавляю…';try{await Sync.addMember(em,pw,$('mrl').value,$('mnm').value.trim(),$('mrl').value==='owner'?[...NP]:[]);$('mph').value=$('mpw').value=$('mnm').value='';NP.clear();renderSync()}catch(err){const c=err.code||'';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message))}bt.textContent='Добавить пользователя'}
- if(e.target.closest('#badd')){const bt=e.target.closest('#badd'),nm=$('bnm').value.trim();if(!nm){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(nm);$('bnm').value=''}catch(err){alert('Не удалось: '+(err.code||err.message))}bt.textContent='Добавить бизнес'}
- const del=e.target.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;del.textContent='…';try{await Sync.removeMember(del.dataset.mdel)}catch(err){alert('Не удалось: '+(err.code||err.message))}}
- if(e.target.closest('#sout')){box0().dataset.mode='';await Sync.signOut()}});
+  bt.textContent='Добавляю…';try{await Sync.addMember(em,pw,SV.nrole,$('mnm').value.trim(),SV.nrole==='owner'?[...NP]:[]);SV.tab=SV.nrole==='owner'?'usr':'adm';SV.form={};NP.clear();go(null,false)}catch(err){const c=err.code||'';bt.textContent='Добавить';bad(c==='auth/wrong-password'||c==='auth/invalid-credential'?'Этот номер уже зарегистрирован с другим паролем':'Не удалось: '+(c||err.message))}return}
+ if(t.closest('#badd')){const bt=t.closest('#badd'),v=$('bnm').value.trim();if(!v){$('bnm').focus();return}bt.textContent='Добавляю…';try{await Sync.addBusiness(v);SV.tab='biz';SV.form={};go(null,false)}catch(err){bt.textContent='Добавить бизнес';fail(err)}return}
+ const del=t.closest('[data-mdel]');if(del){if(!confirm('Убрать доступ у этого пользователя?'))return;try{await Sync.removeMember(del.dataset.mdel);go(null,false)}catch(err){fail(err)}return}
+ if(t.closest('#sout')){box0().dataset.mode='';SV.page=null;await Sync.signOut()}});
 function renderRail(){const r=$('rail'),on=isAdmin();document.body.classList.toggle('has-rail',on);r.hidden=!on;if(!on){r.innerHTML='';return}
  const ps=Dash.H.config.projects,cur=Dash.state.pi;
  r.innerHTML=ps.map((p,i)=>'<button data-pj="'+i+'" class="'+(i===cur?'on':'')+'" aria-label="'+esc(p.name)+'"><i class="lt">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span>'+esc(p.name)+'</span></button>').join('')+'<div class="sp"></div><hr><button data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.97a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg><span>Настройки</span></button>'}
