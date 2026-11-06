@@ -207,38 +207,29 @@ body.lock{overflow:hidden}
 .cmpr.cc .amt{display:block;font-size:clamp(24px,7.4vw,30px);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-top:5px;font-variant-numeric:tabular-nums;color:inherit!important}
 .cmpr.cc .t3{display:block;font-size:12px;font-weight:700;opacity:.75;margin-top:4px;color:inherit}
 </style><style>
-.rail{position:fixed;left:calc(env(safe-area-inset-left) + 10px);top:calc(env(safe-area-inset-top) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);z-index:30;width:64px;padding:10px;display:flex;flex-direction:column;gap:6px;border-radius:28px;background:#1a2030cc;border:1px solid #ffffff1f;box-shadow:0 20px 60px #000a,inset 0 1px 0 #ffffff1a;backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);overflow:hidden;transition:width .26s cubic-bezier(.3,.9,.3,1)}
-.rail:hover,.rail:focus-within,.rail.open{width:262px;padding:16px 10px 10px}
+.rail{position:fixed;left:0;top:0;bottom:0;z-index:30;width:64px;padding:calc(env(safe-area-inset-top) + 14px) 10px calc(env(safe-area-inset-bottom) + 10px) calc(env(safe-area-inset-left) + 10px);box-sizing:content-box;display:flex;flex-direction:column;gap:2px;background:#1b2130b8;border-right:1px solid #ffffff14;backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);overflow:hidden;transition:width .24s cubic-bezier(.3,.9,.3,1),box-shadow .24s}
+.rail:hover,.rail:focus-within,.rail.open{width:216px;box-shadow:12px 0 50px #000a}
 .rail[hidden]{display:none}
-body.has-rail{padding-left:calc(env(safe-area-inset-left) + 86px)}
+body.has-rail{padding-left:calc(env(safe-area-inset-left) + 84px)}
 .rail button{font-family:inherit;color:var(--tx);border:0;background:none;cursor:pointer;text-align:left}
-.rail .rh{height:0;opacity:0;overflow:hidden;transition:opacity .2s,height .26s;white-space:nowrap}
-.rail:hover .rh,.rail:focus-within .rh,.rail.open .rh{height:64px;opacity:1}
-.rail .rh h4{font-size:26px;font-weight:800;letter-spacing:-.03em;padding:0 8px}.rail .rh div{font-size:13px;color:var(--mute);padding:2px 8px 0}
-.rail .sw{position:relative;border-radius:18px;overflow:hidden;flex:none}
-.rail .acts{position:absolute;right:0;top:0;bottom:0;display:flex;visibility:hidden;transition:visibility 0s .28s}.rail .sw.open .acts{visibility:visible;transition:none}
-.rail .acts button{width:70px;display:grid;place-items:center;align-content:center;gap:2px;color:#fff;font-size:12px;font-weight:600}
-.rail .acts .e{background:#ff9f43}.rail .acts .d{background:#ff5a5f}
-.rail .acts svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin:0 auto}
-.rail .rw{position:relative;z-index:1;display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:5px;border-radius:18px;background:none;transition:transform .28s cubic-bezier(.3,.9,.3,1),background .2s;white-space:nowrap}
-.rail .rw.on{background:#ffffff1c}
-.rail:hover .rw,.rail:focus-within .rw,.rail.open .rw{padding:8px 12px 8px 8px;background:#243049}
-.rail:hover .rw.on,.rail:focus-within .rw.on,.rail.open .rw.on{background:#2f4f8f}
-.rail .sw.open .rw{transform:translateX(-140px)}
-.rail .lt{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:16px;color:#fff;box-shadow:inset 0 1px 0 #ffffff44}
-.rail .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;opacity:0;transition:opacity .18s}
-.rail .t small{display:block;font-weight:400;color:#ffffff80;font-size:12px}
-.rail .chev{flex:none;width:26px;text-align:center;color:#ffffff60;font-size:18px;opacity:0;transition:opacity .18s}.rail .chev:hover{color:#fff}
-.rail:hover .t,.rail:hover .chev,.rail:focus-within .t,.rail:focus-within .chev,.rail.open .t,.rail.open .chev{opacity:1}
-.rail .new,.rail .gearrow{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:5px 5px;border-radius:18px;white-space:nowrap;flex:none}
-.rail .new{color:var(--b)}.rail .new .pl{flex:none;width:34px;text-align:center;font-size:22px;line-height:34px}
-.rail .gearrow{color:var(--tx)}.rail:hover .gearrow,.rail:focus-within .gearrow,.rail.open .gearrow{background:#ffffff0f;padding:8px 8px}
-.rail .gearrow svg{flex:none;width:34px;height:22px;stroke:#9aa6bb;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.rail .new span:last-child,.rail .gearrow span{opacity:0;font-weight:600;transition:opacity .18s}
-.rail:hover .new span:last-child,.rail:hover .gearrow span,.rail:focus-within .new span:last-child,.rail:focus-within .gearrow span,.rail.open .new span:last-child,.rail.open .gearrow span{opacity:1}
-.rail .sp{flex:1}
-.rail .rin{width:100%;min-height:44px;border:1px solid var(--b);border-radius:14px;background:#0006;color:var(--tx);font:600 15px inherit;font-family:inherit;padding:0 12px;outline:0}
+.rail .sec{display:flex;align-items:center;justify-content:space-between;height:0;opacity:0;overflow:hidden;padding:0 8px;font-size:11px;font-weight:600;color:#ffffff66;white-space:nowrap;transition:opacity .2s,height .24s}
+.rail:hover .sec,.rail:focus-within .sec,.rail.open .sec{height:26px;opacity:1}
+.rail .sec button{color:var(--mute);font-size:18px;line-height:1;padding:0 2px}.rail .sec button:hover{color:#fff}
+.rail .rw{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 9px;border-radius:10px;white-space:nowrap;flex:none}
+.rail .rw:hover{background:#ffffff10}.rail .rw.on{background:#4f8cff55}
+.rail .lt{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:13px;color:#fff;box-shadow:inset 0 1px 0 #ffffff44}
+.rail .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:14px;opacity:0;transition:opacity .18s}
+.rail .more{flex:none;width:24px;height:24px;border-radius:6px;display:grid;place-items:center;color:var(--mute);font-size:15px;opacity:0;pointer-events:none}
+.rail:hover .t,.rail:focus-within .t,.rail.open .t{opacity:1}
+.rail:hover .rw:hover .more,.rail:hover .rw.on .more,.rail.open .more{opacity:1;pointer-events:auto}.rail .more:hover{background:#ffffff1c;color:#fff}
+.rail .sp{flex:1}.rail .foot{border-top:1px solid #ffffff12;padding-top:6px}
+.rail .foot .rw .t{opacity:0}.rail .foot svg{flex:none;width:26px;height:20px;stroke:#9aa6bb;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rail .rin{width:100%;min-height:36px;border:1px solid var(--b);border-radius:8px;background:#0007;color:var(--tx);font:500 14px inherit;font-family:inherit;padding:0 8px;outline:0}
 .rail .c0{background:linear-gradient(135deg,#6ea2ff,#3b6df0)}.rail .c1{background:linear-gradient(135deg,#34d399,#0f9d6c)}.rail .c2{background:linear-gradient(135deg,#ffb35c,#f0701f)}.rail .c3{background:linear-gradient(135deg,#c08bff,#7a45e8)}
+#rmenu{position:fixed;z-index:60;min-width:190px;padding:6px;border-radius:14px;background:#252b38ee;backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid #ffffff1f;box-shadow:0 18px 50px #000b;display:none}
+#rmenu.on{display:block;animation:rpop .14s ease-out}@keyframes rpop{from{transform:scale(.94);opacity:0}}
+#rmenu button{display:block;width:100%;padding:9px 12px;border:0;border-radius:9px;background:none;color:var(--tx);font:15px inherit;font-family:inherit;text-align:left;cursor:pointer}#rmenu button:hover{background:var(--b)}
+#rmenu button.red{color:#ff6b70}#rmenu button.red:hover{background:#ff5a5f;color:#fff}#rmenu hr{border:0;border-top:1px solid #ffffff1a;margin:5px 4px}
 
 #syncbox .spage.pf{animation:spf .28s cubic-bezier(.3,.9,.3,1)}#syncbox .spage.pb{animation:spb .28s cubic-bezier(.3,.9,.3,1)}
 @keyframes spf{from{transform:translateX(28px);opacity:0}}@keyframes spb{from{transform:translateX(-28px);opacity:0}}
@@ -427,9 +418,9 @@ const syncLabel=()=>SYNC_TXT[(window.Sync&&Sync.state().status)||'off']||'';
 Dash.canRedraw=()=>!editing;
 const isAdmin=()=>!!(window.Sync&&Sync.state().role==='admin');
 Dash.onProject(()=>{sel=null;selMonth=null;editing=false;cmpOpen=false;dOpen=false;document.body.classList.remove('lock')});
-document.addEventListener('click',e=>{if(e.target.closest('[data-swipe]'))return;const b=e.target.closest('[data-project],[data-pj]');if(b)Dash.setProject(+(b.dataset.project??b.dataset.pj))});
+document.addEventListener('click',e=>{if(e.target.closest('[data-more]'))return;const b=e.target.closest('[data-project],[data-pj]');if(b)Dash.setProject(+(b.dataset.project??b.dataset.pj))});
 Dash.start((s,H)=>{
-  if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">Учёт</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':'Нет доступных бизнесов.'}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Синхронизация</button></div>`}
+  if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">Учёт</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':'Нет доступных бизнесов.'}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Настройки</button></div>`}
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1&&!isAdmin()?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
     <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).reverse().join('')}</div></div>`;
@@ -447,7 +438,7 @@ Dash.start((s,H)=>{
   ${daysBlock(m,H,c)}
   ${cmpBlock(m,H)}
   ${inl(s)}
-  <div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Синхронизация</button></div>`;
+  <div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Настройки</button></div>`;
 });
 // keep active month chip visible in the scroller after re-render
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
@@ -543,21 +534,24 @@ document.addEventListener('click',async e=>{const t=e.target;
  if(t.closest('#sout')){box0().dataset.mode='';SV.page=null;await Sync.signOut()}});
 const plur=(n)=>n===0?'Нет владельцев':n+' '+(n%10===1&&n%100!==11?'владелец':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'владельца':'владельцев');
 function renderRail(){const r=$('rail'),on=isAdmin();if(on&&r.querySelector('.rin'))return;document.body.classList.toggle('has-rail',on);r.hidden=!on;if(!on){r.innerHTML='';return}
- const ps=Dash.H.config.projects,cur=Dash.state.pi,ms=(window.Sync&&Sync.state().members)||[],pen='<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>',tr='<svg viewBox="0 0 24 24"><path d="M4 7h16M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
- r.innerHTML='<div class="rh"><h4>Бизнесы</h4><div>Нажми на стрелку — появятся действия</div></div>'+ps.map((p,i)=>'<div class="sw"><div class="acts"><button class="e" data-bren="'+i+'">'+pen+'Имя</button><button class="d" data-bdel="'+i+'">'+tr+'Удалить</button></div><button class="rw '+(i===cur?'on':'')+'" data-pj="'+i+'" aria-label="'+esc(p.name)+'"><i class="lt c'+(i%4)+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span class="t">'+esc(p.name)+'<small>'+plur(ms.filter(m=>m.role==='owner'&&(m.pages||[]).includes(p.id)).length)+'</small></span><span class="chev" data-swipe>‹</span></button></div>').join('')
- +'<button class="new" data-bnew><span class="pl">＋</span><span>Новый бизнес</span></button><div class="sp"></div><button class="gearrow" data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>Настройки</span></button>'}
-document.addEventListener('click',async e=>{const ps=Dash.H.config.projects;
- const sv=e.target.closest('[data-swipe]');
- if(sv){e.stopPropagation();e.preventDefault();const sw=sv.closest('.sw'),o=sw.classList.contains('open');document.querySelectorAll('#rail .sw.open').forEach(x=>x.classList.remove('open'));if(!o)sw.classList.add('open');return}
+ const ps=Dash.H.config.projects,cur=Dash.state.pi;
+ r.innerHTML='<div class="sec">Бизнесы<button data-bnew title="Новый бизнес">＋</button></div>'+ps.map((p,i)=>'<div class="sw" data-i="'+i+'"><button class="rw '+(i===cur?'on':'')+'" data-pj="'+i+'" aria-label="'+esc(p.name)+'"><i class="lt c'+(i%4)+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</i><span class="t">'+esc(p.name)+'</span><span class="more" data-more="'+i+'" title="Действия">⋯</span></button></div>').join('')
+ +'<div class="sp"></div><div class="foot"><button class="rw" data-backup aria-label="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span class="t">Настройки</span></button></div>'}
+const rmenu=document.createElement('div');rmenu.id='rmenu';rmenu.innerHTML='<button data-ma="ren">Переименовать</button><hr><button class="red" data-ma="del">Удалить…</button>';document.body.appendChild(rmenu);let rmi=-1;
+const closeRm=()=>rmenu.classList.remove('on');
+const openRm=(x,y,i)=>{rmi=i;rmenu.style.left=Math.min(x,innerWidth-210)+'px';rmenu.style.top=Math.min(y,innerHeight-110)+'px';rmenu.classList.add('on')};
+const renameAt=i=>{const p=Dash.H.config.projects[i],sw=document.querySelector('#rail .sw[data-i="'+i+'"]');if(!p||!sw)return;sw.innerHTML='<input class="rin" maxlength="30" aria-label="Название бизнеса">';const inp=sw.firstChild;inp.value=p.name;inp.focus();inp.select();
+ let done=false;const fin=ok=>{if(done)return;done=true;const v=inp.value.trim();if(ok&&v&&v!==p.name)Sync.renameBusiness(p.id,v).catch(err=>alert('Не удалось: '+(err.code||err.message)));inp.remove();renderRail()};
+ inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();fin(true)}if(ev.key==='Escape')fin(false)};inp.onblur=()=>fin(true)};
+const deleteAt=async i=>{const p=Dash.H.config.projects[i];if(!p)return;if(!confirm('Удалить бизнес «'+p.name+'» вместе со всеми его данными? Это нельзя отменить.'))return;
+ try{await Sync.removeBusiness(p.id);try{localStorage.removeItem('data:v1:'+p.id)}catch(x){}}catch(err){alert('Не удалось: '+(err.code||err.message))}};
+document.addEventListener('contextmenu',e=>{const w=e.target.closest('#rail [data-pj]');if(w){e.preventDefault();openRm(e.clientX,e.clientY,+w.dataset.pj)}});
+document.addEventListener('click',e=>{
+ const ma=e.target.closest('[data-ma]');if(ma){const i=rmi;closeRm();ma.dataset.ma==='ren'?renameAt(i):deleteAt(i);return}
+ const mo=e.target.closest('[data-more]');if(mo){e.stopPropagation();e.preventDefault();const r=mo.getBoundingClientRect();openRm(r.right+6,r.top,+mo.dataset.more);return}
+ if(!e.target.closest('#rmenu'))closeRm();
  const nb=e.target.closest('[data-bnew]');
- if(nb){nb.outerHTML='<input class="rin" id="rnew" maxlength="30" placeholder="Название бизнеса" aria-label="Название нового бизнеса">';const inp=$('rnew');inp.focus();let done=false;const fin=ok=>{if(done)return;done=true;const v=inp.value.trim();inp.remove();if(ok&&v)Sync.addBusiness(v).catch(err=>alert('Не удалось: '+(err.code||err.message)));renderRail()};inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();fin(true)}if(ev.key==='Escape')fin(false)};inp.onblur=()=>fin(true);return}
- const rb=e.target.closest('[data-bren]');
- if(rb){const p=ps[+rb.dataset.bren],bz=rb.closest('.sw');if(!p)return;bz.innerHTML='<input class="rin" maxlength="30" aria-label="Название бизнеса">';const inp=bz.firstChild;inp.value=p.name;inp.focus();inp.select();
-  let done=false;const fin=ok=>{if(done)return;done=true;const v=inp.value.trim();if(ok&&v&&v!==p.name)Sync.renameBusiness(p.id,v).catch(err=>alert('Не удалось: '+(err.code||err.message)));inp.remove();renderRail()};
-  inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();fin(true)}if(ev.key==='Escape')fin(false)};inp.onblur=()=>fin(true);return}
- const db=e.target.closest('[data-bdel]');
- if(db){const p=ps[+db.dataset.bdel];if(!p)return;if(!confirm('Удалить бизнес «'+p.name+'» вместе со всеми его данными? Это нельзя отменить.'))return;
-  try{await Sync.removeBusiness(p.id);try{localStorage.removeItem('data:v1:'+p.id)}catch(x){}}catch(err){alert('Не удалось: '+(err.code||err.message))}}});
+ if(nb){const first=document.querySelector('#rail .sw');const box=document.createElement('div');box.className='sw';box.innerHTML='<input class="rin" id="rnew" maxlength="30" placeholder="Название бизнеса" aria-label="Название нового бизнеса">';(first||nb.closest('.sec')).insertAdjacentElement(first?'beforebegin':'afterend',box);const inp=$('rnew');inp.focus();let done=false;const fin=ok=>{if(done)return;done=true;const v=inp.value.trim();box.remove();if(ok&&v)Sync.addBusiness(v).catch(err=>alert('Не удалось: '+(err.code||err.message)));renderRail()};inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();fin(true)}if(ev.key==='Escape')fin(false)};inp.onblur=()=>fin(true)}},true);
 window.addEventListener('load',()=>{renderSync();renderRail();if(window.Sync){let k='';Sync.onChange(()=>{renderSync();renderRail();const n=(Sync.state().role||'')+'|'+Sync.state().uid;if(n!==k){k=n;Dash.reload()}})}Dash.onProject(()=>{renderRail();renderSync()})});
 document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))renderSync()});
 
