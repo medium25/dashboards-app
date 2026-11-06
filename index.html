@@ -1,7 +1,7 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070a10"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>Учёт</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-title" content="Учёт"><meta name="mobile-web-app-capable" content="yes"><meta name="color-scheme" content="dark"><meta name="format-detection" content="telephone=no,date=no,address=no,email=no"><link rel="apple-touch-startup-image" href="splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1320x2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="stylesheet" href="shared/neon.css?v=1793974238">
+<title>Учёт</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-title" content="Учёт"><meta name="mobile-web-app-capable" content="yes"><meta name="color-scheme" content="dark"><meta name="format-detection" content="telephone=no,date=no,address=no,email=no"><link rel="apple-touch-startup-image" href="splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="apple-touch-startup-image" href="splash/splash-1320x2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"><link rel="stylesheet" href="shared/neon.css?v=1793974391">
 <style>
 html{-webkit-text-size-adjust:100%}body{overflow-x:clip}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -345,7 +345,7 @@ body.sbv2 .rail .rw{background:#ffffff0a}
 <button id="rbtn" aria-label="Меню" aria-expanded="false" hidden><i></i><i></i><i></i></button><div id="rback"></div>
 <script>
 /* self-update: the page asks the server for the newest index.html and reloads when its BUILD differs */
-(function(){var BUILD='1793974238',busy=false;
+(function(){var BUILD='1793974391',busy=false;
 function check(){if(busy||!navigator.onLine)return;busy=true;
  fetch(location.pathname,{cache:'reload'}).then(function(r){return r.text()}).then(function(t){var m=t.match(/BUILD='([0-9a-z]+)'/);
   if(m&&m[1]!==BUILD){var last=+sessionStorage.getItem('upd')||0;if(Date.now()-last>30000){sessionStorage.setItem('upd',String(Date.now()));location.replace(location.pathname+'?r='+Date.now())}}
@@ -355,7 +355,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)chec
 window.addEventListener('pageshow',function(e){if(e.persisted)check()});
 setInterval(check,300000)})();
 </script>
-<script src="shared/seed.js?v=1793974238"></script><script src="shared/fb-config.js?v=1793974238"></script><script src="shared/core.js?v=1793974238"></script><script>
+<script src="shared/seed.js?v=1793974391"></script><script src="shared/fb-config.js?v=1793974391"></script><script src="shared/core.js?v=1793974391"></script><script>
 const f=n=>Dash.H.fmt(n);
 const totals=m=>m.total&&m.total.found!=null?m.total:{found:m.days.reduce((a,x)=>a+x.found,0),spent:m.days.reduce((a,x)=>a+x.spent,0),diff:m.days.reduce((a,x)=>a+x.diff,0)};
 let keepScroll=0;
@@ -454,7 +454,9 @@ const cumSeries=(mo,upto)=>{const by={};mo.days.forEach(x=>{if(x.hasFound)by[x.d
 const niceMax=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;return(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p};
 const cmpHTML=(m,H)=>{const pm=(Dash.state.months||[]).find(x=>x.key===prevKeyOf(m.key));if(!pm||!pm.days.length||!dayList(m).length)return '';
  const [y,mo]=m.key.split('-').map(Number),dim=new Date(y,mo,0).getDate(),[py,pmo]=pm.key.split('-').map(Number),pdim=new Date(py,pmo,0).getDate(),N=Math.max(dim,pdim);
- const lim=m.days.length?m.days[m.days.length-1].d:0,A=cumSeries(m,lim),B=cumSeries(pm,pdim),sd=Math.min(sel||lim,lim)||lim;
+ const lim=m.days.length?m.days[m.days.length-1].d:0;
+ if(!lim)return `<div class="status">Внеси данные за ${m.label.toLowerCase()}, чтобы увидеть сравнение</div>`;
+ const A=cumSeries(m,lim),B=cumSeries(pm,pdim),sd=Math.min(sel||lim,lim)||lim;
  const all=[...A,...B].map(p=>p.v),lo=Math.min(0,...all),hi=niceMax(Math.max(...all,1)),span=(hi-lo)||1;
  const W=380,HT=210,pl=46,pr=14,pt=14,pb=26,iw=W-pl-pr,ih=HT-pt-pb,x=d=>pl+(d-1)/(N-1)*iw,yv=v=>pt+ih-(v-lo)/span*ih;
  let grid='';for(let i=0;i<=4;i++){const v=lo+span*i/4;grid+=`<line class="gl" x1="${pl}" x2="${W-pr}" y1="${yv(v)}" y2="${yv(v)}"/><text class="ya" x="${pl-6}" y="${yv(v)+3.5}" text-anchor="end">${H.short(v)}</text>`}
@@ -500,7 +502,7 @@ Dash.onProject(()=>{sel=null;selMonth=null;editing=false;cmpOpen=false;dOpen=fal
 document.addEventListener('click',e=>{if(e.target.closest('[data-more]'))return;const b=e.target.closest('[data-project],[data-pj]');if(b)Dash.setProject(+(b.dataset.project??b.dataset.pj))});
 syncTitle();
 Dash.start((s,H)=>{
-  if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">${H.esc(window.currentBrandName())}</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':'Нет доступных бизнесов.'}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Настройки</button></div>`}
+  if(!s.project){const S=window.Sync&&Sync.state(),own=S&&S.role==='owner';return `<div class="top"><h1 class="br"><span class="bn3">${H.esc(window.currentBrandName())}</span></h1></div><div class="status">${own?'Вам пока не открыт ни один бизнес. Попросите администратора.':(S&&S.role==='admin'?'Бизнесов пока нет. Откройте меню ☰ и добавьте первый кнопкой ＋.':'Нет доступных бизнесов.')}</div><div class="foot"><span id="synlbl">${syncLabel()}</span><button data-backup>Настройки</button></div>`}
   const top=`<div class="top">${brandH(s,H)}
     ${H.config.projects.length>1&&!isAdmin()?`<div class="tabs proj">${H.config.projects.map((p,i)=>`<button class="tab ${i===s.pi?'on':''}" data-project="${i}">${H.esc(p.name)}</button>`).join('')}</div>`:''}
     <div class="tabs" id="months">${(s.months||s.project.months).map((m,i)=>`<button class="tab ${i===s.mi?'on':''}" data-month="${i}">${m.label}</button>`).reverse().join('')}</div></div>`;
@@ -712,4 +714,4 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-backup]'))rende
  document.addEventListener('focusin',e=>{if(e.target.matches&&e.target.matches('[data-name]')){const r=document.createRange();r.selectNodeContents(e.target);const sel=getSelection();sel.removeAllRanges();sel.addRange(r)}});
 })();
 </script>
-<script type="module" src="shared/sync.js?v=1793974238"></script></body></html>
+<script type="module" src="shared/sync.js?v=1793974391"></script></body></html>
