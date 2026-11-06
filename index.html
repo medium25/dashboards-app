@@ -284,7 +284,6 @@ body.sbv2 .rail .rw{background:#ffffff0a}
 #gate .gbtn.alt{background:#ffffff12;color:var(--tx)}
 #gate .ghelp{font-size:13px;color:var(--mute);text-align:center;margin-top:14px}
 #gate form:not([hidden]){display:flex;flex-direction:column}#gate .ghelp{order:5}
-#gate.join #sup{order:1;background:var(--b);color:#fff}#gate.join #sgo{order:2;background:#ffffff12;color:var(--tx)}
 #rmenu{position:fixed;z-index:60;min-width:190px;padding:6px;border-radius:14px;background:#252b38ee;backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid #ffffff1f;box-shadow:0 18px 50px #000b;display:none}
 #rmenu.on{display:block;animation:rpop .14s ease-out}@keyframes rpop{from{transform:scale(.94);opacity:0}}
 #rmenu button{display:block;width:100%;padding:9px 12px;border:0;border-radius:9px;background:none;color:var(--tx);font:15px inherit;font-family:inherit;text-align:left;cursor:pointer}#rmenu button:hover{background:var(--b)}
@@ -570,6 +569,7 @@ function adminHTML(S){
   +'<button class="sbtn out" id="sout">Выйти</button>'}
 const GRAD=['#ff8a5c,#ff3d71','#ffc15a,#ff8a2a','#34e0c8,#0ea5e9','#b69cff,#6d5cff'],hue=id=>[...String(id)].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
 const SITE_URL='https://medium25.github.io/dashboards-app/';
+const SETUP=/[?&]setup\b/.test(location.search),GJ=()=>!!(window.Sync&&Sync.state().join);
 let gateOff=false;
 function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return;
  const st=S?S.status:'checking',show=!gateOff&&(st==='checking'||st==='off'||st==='noaccess');
@@ -577,7 +577,7 @@ function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return
  if(!show)return;
  const form=st==='off',no=st==='noaccess';$('gform').hidden=!form;$('gno').hidden=!no;
  const jn=S&&S.join,cp=Dash.H.config.projects[0]||{},nm0=jn?(jn.name||'Учёт'):(cp.name||'Учёт');
- g.classList.toggle('join',!!jn);$('gtitle').textContent=nm0;$('glogo').textContent=nm0.trim().charAt(0).toUpperCase()||'У';
+ g.classList.toggle('join',!!jn);$('sup').hidden=!SETUP;if(!$('sgo').dataset.busy)$('sgo').textContent=jn?'Продолжить':'Войти';$('gtitle').textContent=nm0;$('glogo').textContent=nm0.trim().charAt(0).toUpperCase()||'У';
  $('glogo').style.background='linear-gradient(135deg,'+GRAD[jn&&jn.bid?hue(jn.bid):(cp.id?hue(cp.id):0)]+')';
  if(jn?jn.name:cp.name)window.applyBrand(nm0);
  $('gsub').textContent=no?'Нет доступа':'';$('gsub').hidden=!no;
@@ -605,8 +605,12 @@ document.addEventListener('click',async e=>{const t=e.target;
  if(g){const up=g.id==='sup',em=emailOf($('sem').value),pw=$('spw').value,er=$('serr'),bad=x=>{er.textContent=x;er.classList.add('on')};
   if(!em)return bad('Введи номер полностью: +998 XX XXX XX XX');if(pw.length<6)return bad('Пароль от 6 знаков');
   g.textContent=up?'Создаю…':'Вхожу…';
-  try{await(up?Sync.signUp(em,pw):Sync.signIn(em,pw).catch(async err=>{const c=err.code||'',lg=legacyEmail($('sem').value);if(lg&&(c==='auth/invalid-credential'||c==='auth/user-not-found'||c==='auth/wrong-password'))return Sync.signIn(lg,pw);throw err}))}catch(err){g.textContent=up?'Создать вход':'Войти';const c=err.code||'',x=$('serr');
-   x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль. Если входа ещё нет, нажми «Создать вход»':'Не удалось: '+(c||err.message);x.classList.add('on')}return}
+  const joinMode=!!(Sync.state().join),attempt=async()=>{try{return await Sync.signIn(em,pw)}catch(err){const c=err.code||'';if(!(c==='auth/invalid-credential'||c==='auth/user-not-found'||c==='auth/wrong-password'))throw err;
+   const lg=legacyEmail($('sem').value);if(lg){try{return await Sync.signIn(lg,pw)}catch(e2){}}
+   if(joinMode){try{return await Sync.signUp(em,pw)}catch(e3){if(e3.code==='auth/email-already-in-use')throw Object.assign(new Error('wrong'),{code:'auth/wrong-password'});throw e3}}
+   throw err}};
+  try{await(up?Sync.signUp(em,pw):attempt())}catch(err){g.textContent=GJ()?'Продолжить':'Войти';const c=err.code||'',x=$('serr');
+   x.textContent=c==='auth/email-already-in-use'?'Этот номер уже есть. Нажми «Войти»':c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'?'Неверный номер или пароль':'Не удалось: '+(c||err.message);x.classList.add('on')}return}
  const tb=t.closest('[data-tab]');if(tb){SV.tab=tb.dataset.tab;SV.page=null;SV.fwd=true;renderSync(true);return}
  const nv=t.closest('[data-nav]');if(nv){const [k,id]=nv.dataset.nav.split(':');if(k==='nm'){SV.nrole=id;SV.form={};NP.clear()}if(k==='nb')SV.form={};go({k,id},true);return}
  if(t.closest('[data-back]')){go(null,false);return}
