@@ -97,6 +97,12 @@ const ready = (async () => {
       updateMember: (id, f) => Fs.updateDoc(memberRef(id), f),
       setPages: (id, pages) => Fs.updateDoc(memberRef(id), { pages }),
       addBusiness: async (name) => { const id = 'b' + Date.now().toString(36); await Fs.setDoc(Fs.doc(db, 'businesses', id), { name, createdAt: Fs.serverTimestamp() }); return id; },
+      removeBusiness: async (id) => {
+        const b = Fs.writeBatch(db);
+        b.delete(Fs.doc(db, 'businesses', id)); b.delete(Fs.doc(db, 'shared', id));
+        (S.state.members || []).forEach((m) => { if ((m.pages || []).includes(id)) b.update(memberRef(m.uid), { pages: m.pages.filter((x) => x !== id) }); });
+        await b.commit();
+      },
       renameBusiness: (id, name) => Fs.updateDoc(Fs.doc(db, 'businesses', id), { name }),
     };
   } catch (e) { set({ status: 'error', error: 'sdk: ' + (e.message || e) }); }
@@ -111,6 +117,7 @@ window.Sync = {
   async updateMember(id, f) { await ready; return impl.updateMember(id, f); },
   async setPages(id, pages) { await ready; return impl.setPages(id, pages); },
   async addBusiness(name) { await ready; return impl.addBusiness(name); },
+  async removeBusiness(id) { await ready; return impl.removeBusiness(id); },
   async renameBusiness(id, name) { await ready; return impl.renameBusiness(id, name); },
   async setRole(id, role) { await ready; return impl.setRole(id, role); },
   async removeMember(id) { await ready; return impl.removeMember(id); },
