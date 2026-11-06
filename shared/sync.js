@@ -5,7 +5,7 @@ const BASE = 'https://www.gstatic.com/firebasejs/10.12.5/';
 // is right straight away: dashboard for a returning user, login form for a visitor.
 const AUTH_FLAG = 'auth:v1';
 const wasSignedIn = (() => { try { return localStorage.getItem(AUTH_FLAG) === '1'; } catch (e) { return false; } })();
-const S = { state: { status: !window.FB_CONFIG ? 'noconfig' : wasSignedIn ? 'syncing' : 'off', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null, join: null, invites: null, joinError: false } };
+const S = { state: { status: !window.FB_CONFIG ? 'noconfig' : wasSignedIn ? 'syncing' : 'off', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, at: null, authReady: !window.FB_CONFIG, join: null, invites: null, joinError: false } };
 const listeners = new Set();
 const set = (p) => { Object.assign(S.state, p); listeners.forEach((f) => { try { f(S.state); } catch (e) {} }); };
 // invite link: ?join=<businessId>.<token>&n=<name>. Kept until the person has signed in and joined.
@@ -58,6 +58,7 @@ const ready = (async () => {
     Au.onAuthStateChanged(auth, async (u) => {
       stop(); uid = null; role = null;
       try { u ? localStorage.setItem(AUTH_FLAG, '1') : localStorage.removeItem(AUTH_FLAG); } catch (e) {}
+      if (!S.state.authReady) set({ authReady: true });
       if (!u) { set({ status: 'off', email: null, role: null, members: null, businesses: null, pages: null, uid: null, error: null, joinError: false, invites: null }); return; }
       set({ status: 'syncing', email: u.email, role: null, members: null, businesses: null, pages: null, uid: u.uid, error: null });
       let first = false;
