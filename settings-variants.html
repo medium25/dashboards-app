@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Настройки — 3 варианта</title>
+<style>
+:root{--bg:#070a10;--c1:#121926;--c2:#18202f;--line:#ffffff14;--tx:#f2f5fa;--mute:#8b96aa;--b:#4f8cff;--g:#32d27a;--r:#ff5a5f;--o:#ff9f43;--p:#a06bff}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{background:#05070b;color:var(--tx);font:15px/1.35 -apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;padding:24px 16px 60px;-webkit-font-smoothing:antialiased}
+h1{font-size:15px;font-weight:600;color:var(--mute);text-align:center;margin-bottom:22px;letter-spacing:.02em}
+.row{display:flex;flex-wrap:wrap;gap:28px;justify-content:center}
+.col{width:372px;max-width:100%}
+.lab{font-size:13px;font-weight:700;color:var(--mute);text-align:center;margin-bottom:10px;letter-spacing:.08em;text-transform:uppercase}
+.ph{height:760px;border-radius:44px;background:linear-gradient(180deg,#0e1420,#090d15);border:1px solid #ffffff1c;box-shadow:0 30px 80px #000c;position:relative;overflow:hidden}
+.scr{position:absolute;inset:0;overflow-y:auto;padding:18px 16px 40px;scrollbar-width:none}.scr::-webkit-scrollbar{display:none}
+.grab{width:38px;height:5px;border-radius:9px;background:#ffffff30;margin:0 auto 14px}
+.sw{position:relative;width:51px;height:31px;flex:none}.sw input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;border-radius:99px;background:#ffffff26;transition:background .2s}.sw i:after{content:"";position:absolute;left:2px;top:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px #0006;transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
+.sw input:checked+i{background:var(--g)}.sw input:checked+i:after{transform:translateX(20px)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+/* ===== V1 grouped list ===== */
+.v1 h2{font-size:34px;font-weight:800;letter-spacing:-.03em;margin:4px 4px 16px}
+.v1 .gh{font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin:22px 16px 7px}
+.v1 .grp{background:var(--c1);border-radius:16px;overflow:hidden}
+.v1 .it{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:50px;position:relative}
+.v1 .it+.it:before{content:"";position:absolute;left:16px;right:0;top:0;height:1px;background:var(--line)}
+.v1 .it .t{flex:1;min-width:0}.v1 .it small{display:block;color:var(--mute);font-size:13px}
+.v1 .it .v{color:var(--mute)}.v1 .ch{color:#ffffff40;font-size:20px}
+.v1 .ac{width:30px;height:30px;border-radius:8px;background:var(--b);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
+.v1 .sub{padding:10px 16px 6px 58px;font-size:13px;color:var(--mute)}
+.v1 .inp{width:100%;border:0;background:none;color:var(--tx);font:inherit;outline:0;padding:0}.v1 .inp::placeholder{color:#ffffff50}
+.v1 .btn{width:100%;padding:14px;border-radius:14px;background:var(--b);font-weight:600;font-size:17px;margin-top:16px}
+.v1 .btn.out{background:var(--c1);color:var(--r);margin-top:22px}
+.v1 .pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:#ffffff14;color:var(--mute)}
+/* ===== V2 segmented + glass cards ===== */
+.v2 .top{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 14px}.v2 h2{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.v2 .x{width:30px;height:30px;border-radius:50%;background:#ffffff18;display:grid;place-items:center;color:var(--mute);font-size:15px}
+.v2 .seg{display:flex;background:#ffffff12;border-radius:11px;padding:2px;margin-bottom:16px}
+.v2 .seg button{flex:1;padding:7px 4px;border-radius:9px;font-size:14px;font-weight:600;color:var(--mute);transition:all .2s}
+.v2 .seg button.on{background:#ffffff26;color:var(--tx);box-shadow:0 2px 8px #0005}
+.v2 .pane{display:none}.v2 .pane.on{display:block}
+.v2 .card{background:linear-gradient(180deg,#ffffff0d,#ffffff06);border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:12px;backdrop-filter:blur(20px)}
+.v2 .me{display:flex;align-items:center;gap:14px}.v2 .av{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#6ea2ff,#a06bff);display:grid;place-items:center;font-size:24px;font-weight:700}
+.v2 .me b{font-size:18px;display:block}.v2 .me small{color:var(--mute)}
+.v2 .tag{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:#4f8cff26;color:#8db4ff}
+.v2 .li{display:flex;align-items:center;gap:12px;padding:10px 0}.v2 .li+.li{border-top:1px solid var(--line)}
+.v2 .li .t{flex:1;min-width:0}.v2 .li small{display:block;color:var(--mute);font-size:13px}
+.v2 .dot{width:38px;height:38px;border-radius:12px;background:#ffffff14;display:grid;place-items:center;font-weight:700;flex:none}
+.v2 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.v2 .chip{font-size:13px;padding:6px 12px;border-radius:99px;background:#ffffff10;border:1px solid transparent;color:var(--mute);transition:all .15s}.v2 .chip.on{background:#4f8cff26;color:#9bbcff;border-color:#4f8cff55}
+.v2 .field{width:100%;background:#ffffff0c;border:1px solid var(--line);border-radius:14px;padding:13px 14px;color:var(--tx);font:inherit;outline:0;margin-bottom:8px}.v2 .field::placeholder{color:#ffffff50}
+.v2 .btn{width:100%;padding:14px;border-radius:14px;background:#fff;color:#0a0f18;font-weight:700;font-size:16px;margin-top:6px}
+.v2 .btn.ghost{background:#ffffff14;color:var(--tx)}.v2 .btn.red{background:#ff5a5f22;color:#ff8a8d}
+.v2 .lbl{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin:2px 2px 8px;font-weight:600}
+/* ===== V3 icon tiles + drill-down ===== */
+.v3 .pg{position:absolute;inset:0;padding:18px 16px 40px;overflow-y:auto;background:linear-gradient(180deg,#0e1420,#090d15);transition:transform .32s cubic-bezier(.3,.9,.3,1);scrollbar-width:none}
+.v3 .pg.sub{transform:translateX(100%)}.v3.d1 .pg.main{transform:translateX(-28%)}.v3.d1 .pg.sub.s1,.v3.d2 .pg.sub.s2,.v3.d3 .pg.sub.s3{transform:none}
+.v3 .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;min-height:34px}
+.v3 .back{color:var(--b);font-size:17px;display:flex;align-items:center;gap:2px}
+.v3 h2{font-size:32px;font-weight:800;letter-spacing:-.03em;margin:2px 2px 16px}
+.v3 .prof{display:flex;align-items:center;gap:14px;background:var(--c1);border-radius:18px;padding:14px;margin-bottom:22px}
+.v3 .av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#34d399,#2563eb);display:grid;place-items:center;font-size:22px;font-weight:700;flex:none}
+.v3 .prof b{font-size:18px;display:block}.v3 .prof small{color:var(--mute)}
+.v3 .grp{background:var(--c1);border-radius:16px;overflow:hidden;margin-bottom:22px}
+.v3 .it{display:flex;align-items:center;gap:13px;padding:11px 14px;min-height:54px;width:100%;text-align:left;position:relative}
+.v3 .it+.it:before{content:"";position:absolute;left:60px;right:0;top:0;height:1px;background:var(--line)}
+.v3 .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:17px;flex:none}
+.v3 .it .t{flex:1;min-width:0}.v3 .it small{display:block;color:var(--mute);font-size:13px}.v3 .ch{color:#ffffff40;font-size:20px}
+.v3 .it .v{color:var(--mute)}
+.v3 .gh{font-size:13px;color:var(--mute);margin:0 16px 7px;text-transform:uppercase;letter-spacing:.04em}
+.v3 .inp{width:100%;border:0;background:none;color:var(--tx);font:inherit;outline:0}.v3 .inp::placeholder{color:#ffffff50}
+.v3 .btn{width:100%;padding:14px;border-radius:14px;background:var(--b);font-weight:600;font-size:17px}.v3 .btn.out{background:var(--c1);color:var(--r)}
+.v3 .seg{display:flex;background:#ffffff12;border-radius:9px;padding:2px;margin:0 0 22px}.v3 .seg button{flex:1;padding:6px;border-radius:7px;font-size:13px;font-weight:600;color:var(--mute)}.v3 .seg button.on{background:#ffffff26;color:var(--tx)}
+</style></head><body>
+<h1>Настройки · три варианта в духе Apple. Нажимай, листай, переключай.</h1>
+<div class="row">
+
+<!-- ================= V1 ================= -->
+<div class="col"><div class="lab">1 · Сгруппированный список</div><div class="ph"><div class="scr v1">
+<div class="grab"></div><h2>Настройки</h2>
+<div class="grp"><div class="it"><div class="ac">А</div><div class="t">+998 90 123 45 67<small>Администратор</small></div><span class="pill">В облаке</span></div></div>
+
+<div class="gh">Бизнесы</div>
+<div class="grp"><div class="it"><div class="t">Учёт</div><span class="ch">›</span></div><div class="it"><div class="t">Магазин 2</div><span class="ch">›</span></div>
+<div class="it"><input class="inp" placeholder="Новый бизнес…"><button style="color:var(--b);font-weight:600">Добавить</button></div></div>
+
+<div class="gh">Пользователи</div>
+<div class="grp">
+<div class="it"><div class="t">Влад<small>+998 90 222 33 44</small></div><span class="v">Владелец</span><span class="ch">›</span></div>
+<div class="sub">Видит бизнесы</div>
+<div class="it"><div class="t">Учёт</div><label class="sw"><input type="checkbox" checked><i></i></label></div>
+<div class="it"><div class="t">Магазин 2</div><label class="sw"><input type="checkbox" checked><i></i></label></div>
+<div class="it"><div class="t">Анвар<small>+998 93 555 66 77</small></div><span class="v">Владелец</span><span class="ch">›</span></div>
+<div class="sub">Видит бизнесы</div>
+<div class="it"><div class="t">Учёт</div><label class="sw"><input type="checkbox"><i></i></label></div>
+<div class="it"><div class="t">Магазин 2</div><label class="sw"><input type="checkbox" checked><i></i></label></div>
+</div>
+
+<div class="gh">Новый пользователь</div>
+<div class="grp"><div class="it"><input class="inp" placeholder="Имя"></div><div class="it"><input class="inp" placeholder="Номер телефона" type="tel"></div><div class="it"><input class="inp" placeholder="Пароль"></div><div class="it"><div class="t">Уровень</div><span class="v">Владелец ⌄</span></div></div>
+<button class="btn">Добавить пользователя</button>
+<button class="btn out">Выйти</button>
+</div></div></div>
+
+<!-- ================= V2 ================= -->
+<div class="col"><div class="lab">2 · Вкладки и стеклянные карточки</div><div class="ph"><div class="scr v2" id="v2">
+<div class="grab"></div>
+<div class="top"><h2>Настройки</h2><button class="x">✕</button></div>
+<div class="seg"><button class="on" data-p="0">Профиль</button><button data-p="1">Бизнесы</button><button data-p="2">Люди</button></div>
+
+<div class="pane on" data-p="0">
+<div class="card"><div class="me"><div class="av">А</div><div><b>+998 90 123 45 67</b><small>Данные в облаке</small><br><span class="tag">Администратор</span></div></div></div>
+<button class="btn red">Выйти</button>
+</div>
+
+<div class="pane" data-p="1">
+<div class="lbl">Ваши бизнесы</div>
+<div class="card"><div class="li"><div class="dot">У</div><div class="t"><b>Учёт</b><small>2 владельца видят</small></div></div><div class="li"><div class="dot">М</div><div class="t"><b>Магазин 2</b><small>2 владельца видят</small></div></div></div>
+<div class="lbl">Новый бизнес</div>
+<div class="card"><input class="field" placeholder="Название"><button class="btn">Добавить бизнес</button></div>
+</div>
+
+<div class="pane" data-p="2">
+<div class="lbl">Владельцы</div>
+<div class="card"><div class="li"><div class="dot">В</div><div class="t"><b>Влад</b><small>+998 90 222 33 44</small></div><button class="x">✕</button></div>
+<div class="chips"><button class="chip on">Учёт</button><button class="chip on">Магазин 2</button></div></div>
+<div class="card"><div class="li"><div class="dot">А</div><div class="t"><b>Анвар</b><small>+998 93 555 66 77</small></div><button class="x">✕</button></div>
+<div class="chips"><button class="chip">Учёт</button><button class="chip on">Магазин 2</button></div></div>
+<div class="lbl">Добавить человека</div>
+<div class="card"><input class="field" placeholder="Имя"><input class="field" placeholder="Номер телефона"><input class="field" placeholder="Пароль"><div class="chips" style="margin:0 0 10px"><button class="chip on">Владелец</button><button class="chip">Администратор</button></div><div class="lbl" style="margin-top:12px">Показывать</div><div class="chips" style="margin:0 0 12px"><button class="chip">Учёт</button><button class="chip">Магазин 2</button></div><button class="btn">Добавить</button></div>
+</div>
+</div></div></div>
+
+<!-- ================= V3 ================= -->
+<div class="col"><div class="lab">3 · Как «Настройки» на iPhone</div><div class="ph"><div class="v3" id="v3" style="position:absolute;inset:0">
+<div class="pg main"><div class="nav"><span></span><button style="color:var(--b);font-size:17px;font-weight:600">Готово</button></div>
+<h2>Настройки</h2>
+<div class="prof"><div class="av">А</div><div><b>Администратор</b><small>+998 90 123 45 67</small></div></div>
+<div class="grp">
+<button class="it" data-go="1"><div class="ic" style="background:#4f8cff">🏢</div><div class="t">Бизнесы</div><span class="v">2</span><span class="ch">›</span></button>
+<button class="it" data-go="2"><div class="ic" style="background:#32d27a">👥</div><div class="t">Пользователи</div><span class="v">3</span><span class="ch">›</span></button>
+<button class="it" data-go="3"><div class="ic" style="background:#ff9f43">➕</div><div class="t">Добавить человека</div><span class="ch">›</span></button>
+</div>
+<div class="grp"><div class="it"><div class="ic" style="background:#8b96aa">☁</div><div class="t">Синхронизация</div><span class="v">Всё сохранено</span></div></div>
+<button class="btn out">Выйти</button></div>
+
+<div class="pg sub s1"><div class="nav"><button class="back" data-go="0">‹ Настройки</button></div><h2>Бизнесы</h2>
+<div class="grp"><div class="it"><div class="ic" style="background:#4f8cff">У</div><div class="t">Учёт<small>Владельцев: 1</small></div></div><div class="it"><div class="ic" style="background:#a06bff">М</div><div class="t">Магазин 2<small>Владельцев: 2</small></div></div></div>
+<div class="gh">Новый бизнес</div>
+<div class="grp"><div class="it"><input class="inp" placeholder="Название"></div></div><button class="btn">Добавить бизнес</button></div>
+
+<div class="pg sub s2"><div class="nav"><button class="back" data-go="0">‹ Настройки</button></div><h2>Пользователи</h2>
+<div class="gh">Влад · Владелец</div>
+<div class="grp"><div class="it"><div class="t">Учёт</div><label class="sw"><input type="checkbox" checked><i></i></label></div><div class="it"><div class="t">Магазин 2</div><label class="sw"><input type="checkbox" checked><i></i></label></div></div>
+<div class="gh">Анвар · Владелец</div>
+<div class="grp"><div class="it"><div class="t">Учёт</div><label class="sw"><input type="checkbox"><i></i></label></div><div class="it"><div class="t">Магазин 2</div><label class="sw"><input type="checkbox" checked><i></i></label></div></div>
+<button class="btn out" style="margin-top:0">Убрать пользователя…</button></div>
+
+<div class="pg sub s3"><div class="nav"><button class="back" data-go="0">‹ Настройки</button></div><h2>Новый человек</h2>
+<div class="grp"><div class="it"><input class="inp" placeholder="Имя"></div><div class="it"><input class="inp" placeholder="Номер телефона" type="tel"></div><div class="it"><input class="inp" placeholder="Пароль"></div></div>
+<div class="seg"><button class="on">Владелец</button><button>Администратор</button></div>
+<div class="gh">Видит бизнесы</div>
+<div class="grp"><div class="it"><div class="t">Учёт</div><label class="sw"><input type="checkbox"><i></i></label></div><div class="it"><div class="t">Магазин 2</div><label class="sw"><input type="checkbox"><i></i></label></div></div>
+<button class="btn">Добавить</button></div>
+</div></div></div>
+
+</div>
+<script>
+document.querySelectorAll('#v2 .seg button').forEach(b=>b.onclick=()=>{const p=b.dataset.p,r=document.getElementById('v2');r.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));r.querySelectorAll('.pane').forEach(x=>x.classList.toggle('on',x.dataset.p===p))});
+document.querySelectorAll('#v2 .chip').forEach(c=>c.onclick=()=>c.classList.toggle('on'));
+document.querySelectorAll('.v3 .seg button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
+const v3=document.getElementById('v3');document.querySelectorAll('#v3 [data-go]').forEach(b=>b.onclick=()=>{const n=b.dataset.go;v3.className='v3'+(n==='0'?'':' d'+n)});
+</script></body></html>

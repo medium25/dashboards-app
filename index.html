@@ -400,8 +400,6 @@ Dash.start((s,H)=>{
 new MutationObserver(()=>{const c=document.getElementById('months'),a=c&&c.querySelector('.tab.on');if(a)c.scrollLeft=a.offsetLeft-(c.clientWidth-a.offsetWidth)/2}).observe(document.getElementById('app'),{childList:true});
 </script>
 <div class="bov" id="kov"><div class="bsh" role="dialog" aria-modal="true"><div class="grab"></div><h2>Настройки</h2><div id="syncbox"></div>
-<label class="f">Резервная копия</label><p class="help"> Сохрани копию, чтобы не потерять их или перенести на другой телефон.</p>
-<button class="done" id="kexp">Сохранить копию</button><button class="done alt" id="kimp">Загрузить из файла</button><input type="file" id="kfile" accept="application/json,.json" hidden>
 <div class="err" id="kerr"></div><button class="reset" id="kclose">Закрыть</button></div></div>
 <div id="inst" role="note"><div class="ic2"></div><p><b>Установи как приложение.</b> Нажми <svg class="sh" viewBox="0 0 24 24" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/></svg> «Поделиться», затем <b>«На экран «Домой»»</b>.</p><button id="instx">Понятно</button></div>
 <div class="toast" id="toast"></div>
@@ -411,12 +409,6 @@ const $=id=>document.getElementById(id),D=()=>window.Dash;
 const kerr=t=>{$('kerr').textContent=t||'';$('kerr').classList.toggle('on',!!t)};
 document.addEventListener('click',e=>{if(e.target.closest('[data-backup]')){kerr('');$('kov').classList.add('open')}});
 $('kclose').onclick=()=>$('kov').classList.remove('open');$('kov').onclick=e=>{if(e.target===$('kov'))$('kov').classList.remove('open')};
-$('kexp').onclick=async()=>{const txt=D().exportData(),name='uchet-'+new Date().toISOString().slice(0,10)+'.json',file=new File([txt],name,{type:'application/json'});
- try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Копия данных'});return}}catch(e){if(e&&e.name==='AbortError')return}
- const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)};
-$('kimp').onclick=()=>$('kfile').click();
-$('kfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;kerr('');
- try{const txt=await f.text();if(!confirm('Заменить все данные на этом устройстве данными из файла?'))return;await D().importData(txt);$('kov').classList.remove('open');toast('Данные загружены')}catch(err){kerr(err.message)}};
 // ---- sync box ----
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ST={ok:'Всё сохранено в облаке',syncing:'Синхронизация…',offline:'Нет сети — данные отправятся при подключении',error:'Ошибка: '};
