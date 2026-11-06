@@ -339,7 +339,7 @@ body.sbv2 .rail .rw{background:#ffffff0a}
 })();
 </script>
 <div id="gate"><div class="gbox"><div class="glogo" id="glogo">У</div><h1 id="gtitle">Учёт</h1><p class="gsub" id="gsub">Загрузка…</p>
-<form id="gform" hidden><input id="sem" data-phone type="tel" inputmode="tel" autocomplete="username" placeholder="+998 90 123 45 67" value="+998 "><input id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)"><div class="err" id="serr"></div><button class="gbtn" id="sgo" type="submit">Войти</button><button class="gbtn alt" id="sup" type="button">Создать вход</button><p class="ghelp">Смс не нужно. Номер служит только логином. Пароль придумай сам и запомни: сбросить его нельзя.</p></form>
+<form id="gform" hidden><input id="sem" data-phone type="tel" inputmode="tel" autocomplete="username" placeholder="+998 90 123 45 67" value="+998 "><input id="spw" type="password" autocomplete="current-password" placeholder="Пароль (от 6 знаков)"><div class="err" id="serr"></div><button class="gbtn" id="sgo" type="submit">Войти</button><button class="gbtn alt" id="sup" type="button">Создать вход</button></form>
 <div id="gno" hidden><p class="ghelp" id="gnotxt"></p><button class="gbtn alt" data-gout>Выйти</button></div></div></div>
 <div class="wrap"><div id="app"><div class="status">Загрузка…</div></div></div>
 <nav class="rail" id="rail" aria-label="Меню" hidden></nav>
@@ -574,7 +574,7 @@ function renderGate(){const g=$('gate'),S=window.Sync&&Sync.state();if(!g)return
  g.classList.toggle('join',!!jn);$('gtitle').textContent=nm0;$('glogo').textContent=nm0.trim().charAt(0).toUpperCase()||'У';
  $('glogo').style.background='linear-gradient(135deg,'+GRAD[jn&&jn.bid?hue(jn.bid):0]+')';
  if(jn&&jn.name)document.title=nm0;
- $('gsub').textContent=form?(jn?'Создайте вход, чтобы открыть дашборд бизнеса. Если вход уже есть, нажмите «Войти».':'Войдите, чтобы увидеть данные'):no?'Нет доступа':'Загрузка…';
+ $('gsub').textContent=no?'Нет доступа':'';$('gsub').hidden=!no;
  if(no)$('gnotxt').textContent=S.joinError?'Ссылка недействительна или устарела. Попроси администратора прислать новую.':'Попроси администратора добавить твой номер, затем войди снова.'}
 setTimeout(()=>{if(window.Sync&&Sync.state().status==='checking'||!window.Sync){gateOff=true;renderGate()}},7000);
 $('gform').onsubmit=e=>e.preventDefault();
